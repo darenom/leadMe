@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:bind="http://schemas.android.com/apk/res-auto">
+
+    <data>
+
+        <variable
+            name="showCompass"
+            type="boolean" />
+
+        <variable
+            name="showDirection"
+            type="boolean" />
+
+        <variable
+            name="showProgress"
+            type="boolean" />
+    </data>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <fragment
+            android:id="@+id/map"
+            android:name="com.google.android.gms.maps.SupportMapFragment"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <include
+            layout="@layout/layout_view_compass"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            bind:showCompass="@{showCompass}"
+            bind:showDirection="@{showDirection}" />
+
+        <RelativeLayout
+            android:id="@+id/progress"
+            visibleGone="@{showProgress}"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clickable="false">
+
+            <ProgressBar
+                android:layout_centerInParent="true"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </RelativeLayout>
+
+    </RelativeLayout>
+</layout>

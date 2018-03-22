@@ -1,0 +1,51 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="org.darenom.leadme.ui.MainActivity">
+
+    <item
+        android:id="@+id/opt_clear"
+        android:icon="@drawable/ic_clear_cancel"
+        android:orderInCategory="100"
+        android:title="@string/opt_clear_cancel"
+        android:visible="false"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/opt_direction_save"
+        android:checkable="true"
+        android:icon="@drawable/ic_play"
+        android:orderInCategory="99"
+        android:title="@string/opt_direction_save"
+        android:visible="false"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/opt_here"
+        android:orderInCategory="98"
+        android:icon="@drawable/ic_opt_pos"
+        android:title="@string/opt_from"
+        android:visible="false"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/opt_compass"
+        android:checkable="true"
+        android:checked="false"
+        android:icon="@drawable/ic_opt_compass"
+        android:orderInCategory="98"
+        android:title="@string/opt_compass"
+        android:visible="false"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/opt_play_stop"
+        android:checkable="true"
+        android:onClick="startStopTravel"
+        android:icon="@drawable/ic_play"
+        android:orderInCategory="97"
+        android:title="@string/opt_start_stop"
+        android:visible="false"
+        app:showAsAction="always" />
+
+</menu>

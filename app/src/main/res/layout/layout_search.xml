@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+        <variable
+            name="travelSet"
+            type="org.darenom.leadme.db.model.TravelSet" />
+
+    </data>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/colorPrimary">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:layout_toStartOf="@+id/spinnerMode"
+            android:layout_toEndOf="@+id/search_swap"
+            android:orientation="vertical">
+
+            <EditText
+                android:id="@+id/edtFrom"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:focusableInTouchMode="true"
+                android:hint="@string/hint_origin"
+                android:text="@{travelSet.originAddress}"
+                android:inputType="textPostalAddress|textAutoComplete" />
+
+            <EditText
+                android:id="@+id/edtTo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:focusableInTouchMode="true"
+                android:hint="@string/hint_destination"
+                android:text="@{travelSet.destinationAddress}"
+                android:inputType="textPostalAddress|textAutoComplete" />
+
+        </LinearLayout>
+
+        <ImageButton
+            android:id="@+id/search_swap"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_centerInParent="true"
+            android:background="@color/colorPrimary"
+            android:onClick="swapFromTo"
+            android:src="@drawable/ic_swap_vert_black_24dp"
+            tools:ignore="ContentDescription" />
+
+
+            <Spinner
+                android:id="@+id/spinnerMode"
+                android:layout_alignParentEnd="true"
+                android:layout_centerInParent="true"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:selectedItemPosition="@{travelSet.mode}"/>
+
+    </RelativeLayout>
+</layout>

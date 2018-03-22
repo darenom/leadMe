@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:bind="http://schemas.android.com/tools"
+    tools:context=".ui.MainActivity">
+
+    <data>
+
+        <import type="android.view.View" />
+
+        <variable
+            name="travelSet"
+            type="org.darenom.leadme.db.model.TravelSet" />
+    </data>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/colorPrimary"
+        android:padding="@dimen/appbar_padding_top">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_above="@+id/search"
+            android:background="@color/colorPrimary"
+            android:padding="@dimen/appbar_padding_top">
+
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/rvWaypoints"
+                android:scrollbars="vertical"
+                android:scrollbarAlwaysDrawVerticalTrack="true"
+                android:fadeScrollbars="false"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_above="@+id/edtWaypoint"
+                android:focusableInTouchMode="true"
+                app:layoutManager="LinearLayoutManager" />
+
+            <EditText
+                android:id="@+id/edtWaypoint"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:focusableInTouchMode="true"
+                android:gravity="center"
+                android:hint="@string/hint_waypoint"
+                android:inputType="textPostalAddress|textAutoComplete" />
+
+        </RelativeLayout>
+
+        <include
+            android:id="@+id/search"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            layout="@layout/layout_search"
+            bind:travelSet="@{travelSet}" />
+
+    </RelativeLayout>
+</layout>

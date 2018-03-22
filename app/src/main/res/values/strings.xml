@@ -1,0 +1,87 @@
+<resources>
+    <string name="app_name">leadMe</string>
+    <string name="action_settings">Settings</string>
+    <string name="section_format">Hello World from section: %1$d</string>
+
+    <!-- Speech -->
+    <string name="destination">You have reached destination</string>
+    <string name="out_of_bounds">You may have lost your way</string>
+
+    <!-- errors  -->
+    <string name="cant_ggApi">No GoogleApiClient available</string>
+    <string name="err_no_net">No Network available</string>
+
+    <!-- Menu top -->
+    <string name="opt_compass">Show / Hide compass</string>
+    <string name="opt_from">Set to my position</string>
+    <string name="opt_clear_cancel">Clear</string>
+    <string name="opt_start_stop">Start / Stop travelling</string>
+    <string name="opt_direction_save">Ask directions / Save travel</string>
+
+    <!-- Menu bottom -->
+    <string name="action_map">Map</string>
+    <string name="action_maker">Maker</string>
+    <string name="action_stat">Stat</string>
+
+
+    <!-- Map -->
+    <string name="cant_travel">Location must be active to start travelling</string>
+    <string name="wont_travel">Need permission to start travelling</string>
+    <string name="cant_here">Location must be active to get a position</string>
+    <string name="wont_here">Need permission to get a position</string>
+    <string name="cant_net">Need available connexion to fetch data</string>
+
+    <string name="max_waypoints">Max waypoints reached (17)</string>
+
+    <!-- Maker -->
+    <string name="hint_origin">origin</string>
+    <string name="hint_destination">destination</string>
+    <string name="hint_waypoint">add a waypoint</string>
+    <string name="searching_loc">Expecting location...</string>
+
+    <!-- Stat -->
+    <string name="loading">Loading...</string>
+    <string name="travelset_estimatedtime">Time : </string>
+    <string name="travelset_distance">Distance : </string>
+    <string name="travelstat_time_start">Start at : </string>
+    <string name="travelstat_time_end">End at : </string>
+    <string name="travelstat_timed">Time : </string>
+    <string name="travelstat_distance">Distance : </string>
+    <string name="travelstat_avgspeed">Avg speed : </string>
+
+    <!-- Files -->
+    <string name="no_files">Empty Folder</string>
+    <string name="file_save">Save as</string>
+    <string name="file_saved">File saved</string>
+    <string name="file_delete">Delete ?</string>
+    <string name="file_deleted">File deleted</string>
+    <string name="cant_delete">Error deleting file</string>
+    <string name="no_name">Empty filename</string>
+    <string name="same_name">Already exists</string>
+
+
+    <string name="loading_comments">loading comments</string>
+
+    <!-- Drawables -->
+    <drawable name="ic_play">@android:drawable/ic_media_play</drawable> //start travel
+    <drawable name="ic_pause">@android:drawable/ic_media_pause</drawable>   // pause travel
+    <drawable name="ic_clear_cancel">@android:drawable/ic_menu_close_clear_cancel</drawable>    //clear map
+    <drawable name="ic_open">@android:drawable/ic_menu_add</drawable>   // open ??? in use?
+    <drawable name="ic_delete">@android:drawable/ic_menu_delete</drawable>  // delete travel
+    <drawable name="ic_save">@android:drawable/ic_menu_save</drawable>  // save travel
+    <drawable name="ic_directions">@android:drawable/ic_menu_directions</drawable>  //request directions
+    <drawable name="ic_map">@android:drawable/ic_dialog_map</drawable>
+    <drawable name="ic_maker">@android:drawable/ic_menu_edit</drawable>
+    <drawable name="ic_stat">@android:drawable/ic_menu_agenda</drawable> // compute stats
+    <drawable name="ic_opt_compass">@android:drawable/ic_menu_compass</drawable>
+    <drawable name="ic_opt_pos">@android:drawable/ic_menu_mylocation</drawable>
+
+    <!-- TravelMode -->
+    <string-array name="travel_mode_drw">
+        <item>ic_directions_car_black_24dp</item>
+        <item>ic_directions_run_black_24dp</item>
+        <item>ic_directions_bike_black_24dp</item>
+        <item>ic_directions_transit_black_24dp</item>
+    </string-array>
+
+</resources>

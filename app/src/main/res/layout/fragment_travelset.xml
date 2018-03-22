@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+    <!--  -->
+    <data>
+
+        <variable
+            name="mSwitch"
+            type="Boolean" />
+
+        <variable
+            name="imgMode"
+            type="android.graphics.drawable.Drawable" />
+
+        <variable
+            name="travelSet"
+            type="org.darenom.leadme.db.model.TravelSet" />
+
+        <variable
+            name="callback"
+            type="org.darenom.leadme.ui.callback.TravelSetClickCallback" />
+    </data>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/colorPrimary"
+        android:onClick="@{() ->  callback.onClick(travelSet)}">
+        <!-- infos -->
+        <LinearLayout
+            android:id="@+id/fragment_travelset_info"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:layout_toStartOf="@+id/fragment_travelset_actions"
+            android:orientation="vertical"
+            android:paddingEnd="@dimen/appbar_padding_top"
+            android:paddingStart="@dimen/appbar_padding_top">
+            <!-- name -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:maxLines="1"
+                android:text="@{travelSet.name}" />
+            <!-- from / to -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="start"
+                    android:layout_weight="1"
+                    android:gravity="start"
+                    android:maxLines="5"
+                    android:padding="@dimen/appbar_padding_top"
+                    android:text="@{travelSet.originAddress}" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="end"
+                    android:layout_weight="1"
+                    android:gravity="end"
+                    android:maxLines="5"
+                    android:padding="@dimen/appbar_padding_top"
+                    android:text="@{travelSet.destinationAddress}" />
+            </LinearLayout>
+            <!-- base stat -->
+
+            <!-- distance -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="start"
+                android:gravity="start"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/travelset_distance" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@{travelSet.distance}" />
+            </LinearLayout>
+            <!-- estimated time -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:gravity="end"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/travelset_estimatedtime" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@{travelSet.estimatedTime}" />
+            </LinearLayout>
+
+
+        </LinearLayout>
+        <!-- actions -->
+        <RelativeLayout
+            android:id="@+id/fragment_travelset_actions"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_centerInParent="true">
+            <!-- to map -->
+            <ImageButton
+                visibleGone="@{safeUnbox(mSwitch)}"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_margin="@dimen/appbar_padding_top"
+                android:background="@color/colorPrimary"
+                android:onClick="@{() -> callback.loadInMap(travelSet)}"
+                app:srcCompat="@drawable/ic_map"
+                tools:ignore="ContentDescription" />
+            <!-- info travel mode -->
+            <ImageView
+                visibleGone="@{safeUnbox(!mSwitch)}"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:layout_marginTop="@dimen/activity_vertical_margin"
+                android:src="@{imgMode}" />
+        </RelativeLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_above="@+id/fragment_travelset_info"
+            android:layout_marginEnd="@dimen/spacer"
+            android:layout_marginStart="@dimen/spacer"
+            android:background="@color/colorPrimaryDark" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_below="@+id/fragment_travelset_info"
+            android:layout_marginEnd="@dimen/spacer"
+            android:layout_marginStart="@dimen/spacer"
+            android:background="@color/colorPrimaryDark" />
+    </RelativeLayout>
+
+</layout>

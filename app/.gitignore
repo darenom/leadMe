@@ -1,0 +1,5 @@
+build/
+androidTest/
+test/
+*google_maps_api.xml
+
