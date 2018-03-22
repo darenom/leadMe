@@ -60,14 +60,6 @@ class TravelSetFragment : Fragment() {
                             android.R.layout.simple_spinner_item,
                             Array(it.max, { i: Int -> i.toString() }))
 
-                    spinnerMax.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-                        override fun onItemSelected(arg0: AdapterView<*>, arg1: View,
-                                                    position: Int, id: Long) {
-                            // set stat
-                        }
-
-                        override fun onNothingSelected(arg0: AdapterView<*>) {}
-                    }
                     spinnerMax.adapter = sRouteSelectorAdapter
                 } else {
                     spinnerMax.visibility = View.GONE
