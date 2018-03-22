@@ -130,13 +130,25 @@
                 app:srcCompat="@drawable/ic_map"
                 tools:ignore="ContentDescription" />
             <!-- info travel mode -->
-            <ImageView
+            <LinearLayout
                 visibleGone="@{safeUnbox(!mSwitch)}"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:orientation="vertical"
                 android:layout_centerHorizontal="true"
-                android:layout_marginTop="@dimen/activity_vertical_margin"
-                android:src="@{imgMode}" />
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/activity_vertical_margin"
+                    android:src="@{imgMode}"
+                    tools:ignore="ContentDescription" />
+
+                <Spinner
+                    android:id="@+id/spinnerMax"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
         </RelativeLayout>
 
         <View
