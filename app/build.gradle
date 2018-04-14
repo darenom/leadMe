@@ -70,6 +70,8 @@ dependencies {
     //databinding
     kapt 'com.android.databinding:compiler:3.1.1'
 
+    implementation 'com.sothree.slidinguppanel:library:3.4.0'
+
     //maps
     implementation 'com.google.android.gms:play-services-maps:11.8.0'
     implementation 'com.google.android.gms:play-services-location:11.8.0'

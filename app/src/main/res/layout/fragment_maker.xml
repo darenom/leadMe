@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:bind="http://schemas.android.com/tools"
     tools:context=".ui.MainActivity">
 
@@ -22,10 +21,33 @@
 
         <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_above="@+id/search"
-            android:background="@color/colorPrimary"
-            android:padding="@dimen/appbar_padding_top">
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/search"
+            android:background="@color/colorPrimary">
+
+            <EditText
+                android:id="@+id/edtWaypoint"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:hint="@string/hint_waypoint"
+                android:layout_alignParentTop="true"
+                android:layout_marginStart="@dimen/spacer"
+                android:drawableEnd="@drawable/ic_opt_pos"
+                android:focusableInTouchMode="true"
+                android:clickable="true"
+                android:focusable="true"
+                android:inputType="textPostalAddress|textAutoComplete" />
+
+            <Spinner
+                android:id="@+id/spinnerMode"
+
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:layout_alignParentTop="true"
+                android:layout_marginTop="@dimen/appbar_padding_top"
+                android:selectedItemPosition="@{travelSet.mode}" />
 
             <android.support.v7.widget.RecyclerView
                 android:id="@+id/rvWaypoints"
@@ -33,20 +55,10 @@
                 android:scrollbarAlwaysDrawVerticalTrack="true"
                 android:fadeScrollbars="false"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_above="@+id/edtWaypoint"
-                android:focusableInTouchMode="true"
-                app:layoutManager="LinearLayoutManager" />
-
-            <EditText
-                android:id="@+id/edtWaypoint"
-                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_alignParentBottom="true"
-                android:focusableInTouchMode="true"
-                android:gravity="center"
-                android:hint="@string/hint_waypoint"
-                android:inputType="textPostalAddress|textAutoComplete" />
+                android:padding="@dimen/appbar_padding_top"
+                android:layout_below="@+id/edtWaypoint"
+                android:focusableInTouchMode="true" />
 
         </RelativeLayout>
 
@@ -54,7 +66,7 @@
             android:id="@+id/search"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
+            android:layout_alignParentTop="true"
             layout="@layout/layout_search"
             bind:travelSet="@{travelSet}" />
 

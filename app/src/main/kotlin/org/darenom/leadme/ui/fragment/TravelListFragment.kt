@@ -35,7 +35,7 @@ class TravelListFragment : Fragment() {
     private val mTravelSetClickCallback = object : TravelSetClickCallback {
         override fun loadInMap(travelSet: TravelSet) {
             svm!!.name.value = travelSet.name
-            activity!!.bottombar.selectedItemId = R.id.action_map
+           // activity!!.bottombar.selectedItemId = R.id.action_map
         }
 
         override fun onClick(travelSet: TravelSet) {
@@ -55,7 +55,6 @@ class TravelListFragment : Fragment() {
 
     override fun onPrepareOptionsMenu(menu: Menu?) {
         super.onPrepareOptionsMenu(menu)
-        menu?.findItem(R.id.opt_here)?.isVisible = false
         menu?.findItem(R.id.opt_compass)?.isVisible = false
         menu?.findItem(R.id.opt_play_stop)?.isVisible = false
         menu?.findItem(R.id.opt_direction_save)?.isVisible = false

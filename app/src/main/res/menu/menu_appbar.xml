@@ -21,14 +21,6 @@
         app:showAsAction="always" />
 
     <item
-        android:id="@+id/opt_here"
-        android:orderInCategory="98"
-        android:icon="@drawable/ic_opt_pos"
-        android:title="@string/opt_from"
-        android:visible="false"
-        app:showAsAction="always" />
-
-    <item
         android:id="@+id/opt_compass"
         android:checkable="true"
         android:checked="false"

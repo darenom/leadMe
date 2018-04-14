@@ -53,7 +53,7 @@ class TravelMapFragment : Fragment(), OnMapReadyCallback,
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setHasOptionsMenu(true) // enables menu
+        setHasOptionsMenu(false)
         retainInstance = true   // onConfigChange retain
         svm = ViewModelProviders.of(activity!!).get(SharedViewModel::class.java)
     }
@@ -67,18 +67,6 @@ class TravelMapFragment : Fragment(), OnMapReadyCallback,
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         subscribeUI()
-    }
-
-    override fun onPrepareOptionsMenu(menu: Menu?) {
-        super.onPrepareOptionsMenu(menu)
-        menu?.findItem(R.id.opt_here)?.isVisible = false
-        menu?.findItem(R.id.opt_compass)?.isVisible = true
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        super.onOptionsItemSelected(item)
-        activity!!.invalidateOptionsMenu()
-        return false
     }
 
     // region Listeners
