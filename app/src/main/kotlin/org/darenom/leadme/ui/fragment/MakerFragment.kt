@@ -1,9 +1,11 @@
 package org.darenom.leadme.ui.fragment
 
+import android.Manifest
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.databinding.DataBindingUtil
 import android.os.Bundle
 import android.provider.Settings
@@ -27,6 +29,13 @@ import org.darenom.leadme.ui.adapter.helper.SimpleItemTouchHelperCallback
 import org.darenom.leadme.ui.callback.WaypointsChanged
 import org.darenom.leadme.ui.viewmodel.SharedViewModel
 import java.util.*
+import android.support.constraint.solver.widgets.WidgetContainer.getBounds
+import android.support.v4.app.ActivityCompat
+import android.support.v4.content.ContextCompat
+import android.view.MotionEvent
+import android.view.View.OnTouchListener
+import com.google.maps.model.LatLng
+import org.darenom.leadme.service.TravelService
 
 
 /**
@@ -83,9 +92,43 @@ class MakerFragment : Fragment(), WaypointsChanged {
         false
     }
 
+    private var touch = OnTouchListener { v, event ->
+        if (event.action == MotionEvent.ACTION_UP) {
+            if (event.rawX >= v.getRight() - (v as EditText).getCompoundDrawables()[2].getBounds().width()) {
+                if ((activity!!.application as BaseApp).travelService!!.hasPos) {
+                    if (null != TravelService.here) {
+                        when (v.id){
+                            edtFrom.id -> svm!!.setLocationAs(SharedViewModel.Companion.PointType.ORIGIN,
+                                    LatLng(TravelService.here!!.latitude, TravelService.here!!.longitude))
+                            edtTo.id -> svm!!.setLocationAs(SharedViewModel.Companion.PointType.DESTINATION,
+                                    LatLng(TravelService.here!!.latitude, TravelService.here!!.longitude))
+                            edtWaypoint.id-> svm!!.setLocationAs(SharedViewModel.Companion.PointType.WAYPOINT,
+                                    LatLng(TravelService.here!!.latitude, TravelService.here!!.longitude))
+                        }
+                    } else {
+                        Toast.makeText(activity, getString(R.string.searching_loc), Toast.LENGTH_SHORT).show()
+                    }
+                } else {
+                    if (ContextCompat.checkSelfPermission(context!!,
+                                    Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED)
+                    //  missing feature
+                        startActivityForResult(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS), MainActivity.LOCATION_SET_HERE)
+                    else
+                    // missing perm
+                        ActivityCompat.requestPermissions(activity!!,
+                                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                                MainActivity.PERM_SET_HERE)
+                }
+
+                return@OnTouchListener true
+            }
+        }
+        false
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setHasOptionsMenu(true)
+        setHasOptionsMenu(false)
         retainInstance = true   // onConfigChange retain
         svm = ViewModelProviders.of(activity!!).get(SharedViewModel::class.java)
     }
@@ -103,15 +146,18 @@ class MakerFragment : Fragment(), WaypointsChanged {
 
         mBinding!!.search!!.edtFrom.setOnEditorActionListener(editor)
         mBinding!!.search!!.edtFrom.onFocusChangeListener = focus
+        mBinding!!.search!!.edtFrom.setOnTouchListener(touch)
 
         mBinding!!.search!!.edtTo.setOnEditorActionListener(editor)
         mBinding!!.search!!.edtTo.onFocusChangeListener = focus
+        mBinding!!.search!!.edtTo.setOnTouchListener(touch)
 
         mBinding!!.edtWaypoint.setOnEditorActionListener(editor)
         mBinding!!.edtWaypoint.onFocusChangeListener = focus
+        mBinding!!.edtWaypoint.setOnTouchListener(touch)
 
-        mBinding!!.search!!.spinnerMode.adapter = TravelModeAdapter(context!!, R.layout.item_image)
-        mBinding!!.search!!.spinnerMode.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+        mBinding!!.spinnerMode.adapter = TravelModeAdapter(context!!, R.layout.item_image)
+        mBinding!!.spinnerMode.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>, view: View?, pos: Int, id: Long) {
                 if (null != svm!!.travelSet.value) {
                     svm!!.travelSet.value!!.mode = pos
@@ -124,18 +170,6 @@ class MakerFragment : Fragment(), WaypointsChanged {
         }
 
         return mBinding!!.root
-    }
-
-    override fun onPrepareOptionsMenu(menu: Menu?) {
-        super.onPrepareOptionsMenu(menu)
-        menu?.findItem(R.id.opt_compass)?.isVisible = false
-        menu?.findItem(R.id.opt_here)?.isVisible = true
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        super.onOptionsItemSelected(item)
-        activity!!.invalidateOptionsMenu()
-        return false
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {

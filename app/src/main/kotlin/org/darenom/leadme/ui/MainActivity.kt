@@ -51,11 +51,6 @@ import java.util.*
 class MainActivity : AppCompatActivity(), PendingResult.Callback<DirectionsResult>, SaveTravelDialog.SaveTravelDialogListener {
 
     companion object {
-
-        var mapFragment: TravelMapFragment? = null
-        var makerFragment: MakerFragment? = null
-        var travelListFragment: TravelListFragment? = null
-
         const val CHECK_TTS_ACCESS = 40
         const val CHECK_NET_ACCESS = 41
         const val PERM_SET_HERE = 101
@@ -66,31 +61,29 @@ class MainActivity : AppCompatActivity(), PendingResult.Callback<DirectionsResul
 
     private var svm: SharedViewModel? = null
 
-    private var mSectionsPagerAdapter: SectionsPagerAdapter? = null
-
     private val mMapReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             when (intent.action) {
             // point to north
                 TravelService.ORIENTATION_CHANGED -> {
-                    mapFragment?.layout_compass!!.onOrientationChanged(intent.getFloatArrayExtra(TravelService.ORIENTATION_CHANGED))
+                    (map as TravelMapFragment).layout_compass!!.onOrientationChanged(intent.getFloatArrayExtra(TravelService.ORIENTATION_CHANGED))
                 }
             // point to closest
                 TravelService.DIRECTION_CHANGED -> {
-                    mapFragment?.mBinding!!.showDirection = true
-                    mapFragment?.layout_compass!!.onDirectionChanged(intent.getFloatExtra(TravelService.DIRECTION_CHANGED, 0f))
+                    (map as TravelMapFragment).mBinding!!.showDirection = true
+                    (map as TravelMapFragment).layout_compass!!.onDirectionChanged(intent.getFloatExtra(TravelService.DIRECTION_CHANGED, 0f))
                 }
                 TravelService.ARRIVED -> {
                     if (TravelService.travelling)
                         startStopTravel(null)
                 }
                 TravelService.MY_WAY_BACK -> {
-                    mapFragment?.mBinding!!.showDirection = false
+                    (map as TravelMapFragment).mBinding!!.showDirection = false
                 }
                 TravelService.SEGMENT_CHANGED -> {
                     val lats = intent.getParcelableArrayListExtra<com.google.android.gms.maps.model.LatLng>(TravelService.SEGMENT_SIDES)
                     val length = intent.getFloatExtra(TravelService.SEGMENT_LENGTH, 0f)
-                    mapFragment?.redraw(lats, length)
+                    (map as TravelMapFragment).redraw(lats, length)
                 }
             }
         }
@@ -104,23 +97,6 @@ class MainActivity : AppCompatActivity(), PendingResult.Callback<DirectionsResul
         supportActionBar?.setDisplayShowTitleEnabled(true)
 
         svm = ViewModelProviders.of(this).get(SharedViewModel::class.java)
-
-        mapFragment = TravelMapFragment.getInstance()
-        makerFragment = MakerFragment.getInstance()
-        travelListFragment = TravelListFragment.getInstance()
-
-        mSectionsPagerAdapter = SectionsPagerAdapter(supportFragmentManager)
-        main_container.adapter = mSectionsPagerAdapter
-
-        bottombar.setOnNavigationItemSelectedListener({ item ->
-            item.isChecked = true
-            when (item.itemId) {
-                R.id.action_map -> main_container.currentItem = 0
-                R.id.action_maker -> main_container.currentItem = 1
-                R.id.action_stat -> main_container.currentItem = 2
-            }
-            false
-        })
 
         subscribeUI()
         ttsChecker()
@@ -154,14 +130,21 @@ class MainActivity : AppCompatActivity(), PendingResult.Callback<DirectionsResul
                     supportActionBar?.setTitle(R.string.app_name)
                 else {
                     supportActionBar?.title = it
-                    if (null != mapFragment!!.mBinding)
-                        mapFragment!!.mBinding!!.showProgress = true
+                    if (null != (map as TravelMapFragment).mBinding)
+                        (map as TravelMapFragment).mBinding!!.showProgress = true
                 }
 
                 // todo async task
                 travel.value = null
                 svm!!.read(it)
                 svm!!.monitor(it)
+            }
+        })
+
+        svm!!.optCompass.observe(this, Observer {
+            if (null != it) {
+                (map as TravelMapFragment).mBinding!!.showCompass = it
+                (application as BaseApp).travelService!!.enableCompass(it, 0)
             }
         })
     }
@@ -176,13 +159,12 @@ class MainActivity : AppCompatActivity(), PendingResult.Callback<DirectionsResul
         super.onPrepareOptionsMenu(menu)
 
         // visibility
-        val mnuLoc = menu?.findItem(R.id.opt_here)
+
         val mnuCompass = menu?.findItem(R.id.opt_compass)
         val mnuClear = menu?.findItem(R.id.opt_clear)
         val mnuTravel = menu?.findItem(R.id.opt_play_stop)
         val mnuAskSave = menu?.findItem(R.id.opt_direction_save)
 
-        mnuLoc?.isVisible = (application as BaseApp).travelService!!.hasPos
         mnuCompass?.isVisible = (application as BaseApp).travelService!!.hasCompass
 
         mnuTravel?.isVisible = travel.value != null
@@ -205,13 +187,13 @@ class MainActivity : AppCompatActivity(), PendingResult.Callback<DirectionsResul
                 mnuAskSave?.isVisible = true
                 mnuAskSave?.isChecked = true
             } else {
-                makerFragment?.enable(false)
+                (maker as MakerFragment).enable(false)
                 mnuAskSave?.isVisible = false
             }
         } else {
             mnuAskSave?.setIcon(R.drawable.ic_directions)
             if (null == svm!!.travelSet.value) {
-                makerFragment?.enable(true)
+                (maker as MakerFragment).enable(true)
                 mnuAskSave?.isVisible = false
             } else {
                 if (svm!!.travelSet.value!!.originAddress.isNotEmpty() && svm!!.travelSet.value!!.destinationAddress.isNotEmpty()) {
@@ -233,15 +215,13 @@ class MainActivity : AppCompatActivity(), PendingResult.Callback<DirectionsResul
 
             R.id.opt_clear -> {
                 travel.value = null
-                mapFragment?.clear()
+                (map as TravelMapFragment).clear()
                 svm!!.clear()
-                makerFragment?.enable(true)
+                (maker as MakerFragment).enable(true)
             }
 
             R.id.opt_compass -> {
-                svm!!.optCompass.value = !item.isChecked
-                (application as BaseApp).travelService!!.enableCompass(!item.isChecked, 0)
-
+                svm!!.optCompass.value = !svm!!.optCompass.value!!
             }
 
             R.id.opt_direction_save -> {
@@ -249,33 +229,6 @@ class MainActivity : AppCompatActivity(), PendingResult.Callback<DirectionsResul
                     directions()
                 else
                     SaveTravelDialog().show(supportFragmentManager, R.id.opt_direction_save.toString())
-            }
-
-            R.id.opt_here -> {
-                if ((application as BaseApp).travelService!!.hasPos) {
-                    if (null != TravelService.here) {
-                        when {
-                            makerFragment?.edtFrom!!.hasFocus() -> svm!!.setLocationAs(SharedViewModel.Companion.PointType.ORIGIN,
-                                    LatLng(TravelService.here!!.latitude, TravelService.here!!.longitude))
-                            makerFragment?.edtTo!!.hasFocus() -> svm!!.setLocationAs(SharedViewModel.Companion.PointType.DESTINATION,
-                                    LatLng(TravelService.here!!.latitude, TravelService.here!!.longitude))
-                            makerFragment?.edtWaypoint!!.hasFocus() -> svm!!.setLocationAs(SharedViewModel.Companion.PointType.WAYPOINT,
-                                    LatLng(TravelService.here!!.latitude, TravelService.here!!.longitude))
-                        }
-                    } else {
-                        Toast.makeText(this, getString(R.string.searching_loc), Toast.LENGTH_SHORT).show()
-                    }
-                } else {
-                    if (ContextCompat.checkSelfPermission(this,
-                                    Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED)
-                    //  missing feature
-                        startActivityForResult(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS), LOCATION_SET_HERE)
-                    else
-                    // missing perm
-                        ActivityCompat.requestPermissions(this,
-                                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                                PERM_SET_HERE)
-                }
             }
         }
         return false
@@ -371,7 +324,7 @@ class MainActivity : AppCompatActivity(), PendingResult.Callback<DirectionsResul
     // request directionsAPI
     private fun directions() {
 
-        mapFragment!!.mBinding!!.showProgress = true
+        (map as TravelMapFragment).mBinding!!.showProgress = true
 
         val mode = TravelMode.values()[svm!!.travelSet.value!!.mode]
 
@@ -420,7 +373,6 @@ class MainActivity : AppCompatActivity(), PendingResult.Callback<DirectionsResul
                 }
 
                 (application as BaseApp).mAppExecutors!!.mainThread().execute({
-                    bottombar.selectedItemId = R.id.action_map
                     travel.value = tmpTravel
                     svm!!.travelSet.value!!.distance = if (d > 999) "${d / 1000} km" else "$d m"
                     svm!!.travelSet.value!!.estimatedTime = DateConverter.compoundDuration(t)
@@ -430,13 +382,13 @@ class MainActivity : AppCompatActivity(), PendingResult.Callback<DirectionsResul
                 })
             })
         } else {
-            mapFragment!!.mBinding!!.showProgress = false
+            (map as TravelMapFragment).mBinding!!.showProgress = false
         }
 
     }
 
     fun startStopTravel(m: MenuItem?) {
-        mapFragment?.mBinding!!.showDirection = false
+        (map as TravelMapFragment)?.mBinding!!.showDirection = false
         if (!TravelService.travelling) {
             // attempt start
             if (!(application as BaseApp).travelService!!.startMotion(svm!!.travelSet.value!!.max + 1))
@@ -478,21 +430,5 @@ class MainActivity : AppCompatActivity(), PendingResult.Callback<DirectionsResul
 
         svm!!.update(svm!!.travelSet.value!!)
 
-    }
-
-    inner class SectionsPagerAdapter(fm: FragmentManager) : FragmentPagerAdapter(fm) {
-        override fun getItem(position: Int): Fragment {
-            var f: Fragment? = null
-            when (position) {
-                0 -> f = mapFragment
-                1 -> f = makerFragment
-                2 -> f = travelListFragment
-            }
-            return f!!
-        }
-
-        override fun getCount(): Int {
-            return 3
-        }
     }
 }
