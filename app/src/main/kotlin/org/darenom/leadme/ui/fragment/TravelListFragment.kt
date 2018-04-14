@@ -9,7 +9,7 @@ import android.os.Bundle
 import android.support.annotation.Nullable
 import android.support.v4.app.Fragment
 import android.view.*
-import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.activity_travel.*
 import org.darenom.leadme.R
 import org.darenom.leadme.databinding.FragmentTravelsetListBinding
 import org.darenom.leadme.db.entities.TravelSetEntity

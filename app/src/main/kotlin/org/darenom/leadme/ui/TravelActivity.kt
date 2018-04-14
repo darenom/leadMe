@@ -12,9 +12,6 @@ import android.os.Bundle
 import android.provider.Settings
 import android.speech.tts.TextToSpeech
 import android.support.v4.app.ActivityCompat
-import android.support.v4.app.Fragment
-import android.support.v4.app.FragmentManager
-import android.support.v4.app.FragmentPagerAdapter
 import android.support.v4.content.ContextCompat
 import android.support.v4.content.LocalBroadcastManager
 import android.support.v7.app.AppCompatActivity
@@ -29,9 +26,7 @@ import com.google.maps.PendingResult
 import com.google.maps.model.DirectionsResult
 import com.google.maps.model.LatLng
 import com.google.maps.model.TravelMode
-import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.android.synthetic.main.fragment_maker.*
-import kotlinx.android.synthetic.main.layout_search.*
+import kotlinx.android.synthetic.main.activity_travel.*
 import kotlinx.android.synthetic.main.layout_view_compass.*
 import org.darenom.leadme.BaseApp
 import org.darenom.leadme.BuildConfig
@@ -42,13 +37,12 @@ import org.darenom.leadme.model.Travel
 import org.darenom.leadme.service.TravelService
 import org.darenom.leadme.service.TravelService.Companion.travel
 import org.darenom.leadme.ui.fragment.MakerFragment
-import org.darenom.leadme.ui.fragment.TravelListFragment
 import org.darenom.leadme.ui.fragment.TravelMapFragment
 import org.darenom.leadme.ui.viewmodel.SharedViewModel
 import java.util.*
 
 
-class MainActivity : AppCompatActivity(), PendingResult.Callback<DirectionsResult>, SaveTravelDialog.SaveTravelDialogListener {
+class TravelActivity : AppCompatActivity(), PendingResult.Callback<DirectionsResult>, SaveTravelDialog.SaveTravelDialogListener {
 
     companion object {
         const val CHECK_TTS_ACCESS = 40
@@ -91,7 +85,7 @@ class MainActivity : AppCompatActivity(), PendingResult.Callback<DirectionsResul
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        setContentView(R.layout.activity_travel)
 
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayShowTitleEnabled(true)
@@ -356,7 +350,7 @@ class MainActivity : AppCompatActivity(), PendingResult.Callback<DirectionsResul
     override fun onFailure(e: Throwable?) {
         Log.w(TravelMapFragment::class.java.simpleName, e?.message)
         if (!(application as BaseApp).isNetworkAvailable)
-            startActivityForResult(Intent(Settings.ACTION_WIFI_SETTINGS), MainActivity.CHECK_NET_ACCESS)
+            startActivityForResult(Intent(Settings.ACTION_WIFI_SETTINGS), TravelActivity.CHECK_NET_ACCESS)
     }
 
     // DirectionsAPI result

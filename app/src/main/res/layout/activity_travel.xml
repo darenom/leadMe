@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/colorPrimary"
-    tools:context="org.darenom.leadme.ui.MainActivity">
+    tools:context="org.darenom.leadme.ui.TravelActivity">
 
     <android.support.design.widget.AppBarLayout
         android:id="@+id/appbar"

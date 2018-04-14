@@ -22,14 +22,13 @@ import org.darenom.leadme.BaseApp
 import org.darenom.leadme.R
 import org.darenom.leadme.databinding.FragmentMakerBinding
 import org.darenom.leadme.service.TravelService.Companion.travel
-import org.darenom.leadme.ui.MainActivity
+import org.darenom.leadme.ui.TravelActivity
 import org.darenom.leadme.ui.adapter.WaypointAdapter
 import org.darenom.leadme.ui.adapter.helper.ItemTouchHelperAdapter
 import org.darenom.leadme.ui.adapter.helper.SimpleItemTouchHelperCallback
 import org.darenom.leadme.ui.callback.WaypointsChanged
 import org.darenom.leadme.ui.viewmodel.SharedViewModel
 import java.util.*
-import android.support.constraint.solver.widgets.WidgetContainer.getBounds
 import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
 import android.view.MotionEvent
@@ -112,12 +111,12 @@ class MakerFragment : Fragment(), WaypointsChanged {
                     if (ContextCompat.checkSelfPermission(context!!,
                                     Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED)
                     //  missing feature
-                        startActivityForResult(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS), MainActivity.LOCATION_SET_HERE)
+                        startActivityForResult(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS), TravelActivity.LOCATION_SET_HERE)
                     else
                     // missing perm
                         ActivityCompat.requestPermissions(activity!!,
                                 arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                                MainActivity.PERM_SET_HERE)
+                                TravelActivity.PERM_SET_HERE)
                 }
 
                 return@OnTouchListener true
@@ -230,7 +229,7 @@ class MakerFragment : Fragment(), WaypointsChanged {
                 svm!!.setPoint(a, s)
 
         } else
-            activity!!.startActivityForResult(Intent(Settings.ACTION_WIFI_SETTINGS), MainActivity.CHECK_NET_ACCESS)
+            activity!!.startActivityForResult(Intent(Settings.ACTION_WIFI_SETTINGS), TravelActivity.CHECK_NET_ACCESS)
 
     }
 

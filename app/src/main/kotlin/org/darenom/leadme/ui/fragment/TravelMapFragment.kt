@@ -19,7 +19,6 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
 import com.google.maps.android.PolyUtil
-import kotlinx.android.synthetic.main.activity_main.*
 import org.darenom.leadme.BaseApp
 import org.darenom.leadme.BuildConfig
 import org.darenom.leadme.R
@@ -28,8 +27,7 @@ import org.darenom.leadme.db.entities.TravelSetEntity
 import org.darenom.leadme.model.Travel
 import org.darenom.leadme.service.TravelService.Companion.travel
 import org.darenom.leadme.service.TravelService.Companion.travelling
-import org.darenom.leadme.ui.MainActivity
-import org.darenom.leadme.ui.MainActivity.Companion.CHECK_NET_ACCESS
+import org.darenom.leadme.ui.TravelActivity.Companion.CHECK_NET_ACCESS
 import org.darenom.leadme.ui.viewmodel.SharedViewModel
 import java.util.*
 

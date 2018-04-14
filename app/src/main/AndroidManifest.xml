@@ -37,10 +37,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".ui.MainActivity"
+        <activity android:name=".ui.TravelActivity"
             android:theme="@style/AppTheme.NoActionBar"/>
         <activity android:name=".ui.StatisticsActivity"
-            android:parentActivityName=".ui.MainActivity"
+            android:parentActivityName=".ui.TravelActivity"
             android:theme="@style/AppTheme.NoActionBar"/>
         <service android:name=".service.TravelService" />
 
