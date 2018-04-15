@@ -3,10 +3,7 @@ package org.darenom.leadme.ui
 import android.Manifest
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
-import android.content.BroadcastReceiver
-import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.provider.Settings
@@ -14,7 +11,6 @@ import android.speech.tts.TextToSpeech
 import android.support.v4.app.ActivityCompat
 import android.support.v4.app.Fragment
 import android.support.v4.content.ContextCompat
-import android.support.v4.content.LocalBroadcastManager
 import android.util.Log
 import android.view.*
 import android.widget.Toast
@@ -24,8 +20,6 @@ import com.google.maps.PendingResult
 import com.google.maps.model.DirectionsResult
 import com.google.maps.model.LatLng
 import com.google.maps.model.TravelMode
-import kotlinx.android.synthetic.main.activity_travel.*
-import kotlinx.android.synthetic.main.layout_view_compass.*
 import org.darenom.leadme.BaseApp
 import org.darenom.leadme.BuildConfig
 import org.darenom.leadme.R
@@ -34,11 +28,21 @@ import org.darenom.leadme.db.entities.TravelSetEntity
 import org.darenom.leadme.model.Travel
 import org.darenom.leadme.service.TravelService
 import org.darenom.leadme.service.TravelService.Companion.travel
-import org.darenom.leadme.ui.fragment.MakerFragment
 import org.darenom.leadme.ui.fragment.TravelMapFragment
 import org.darenom.leadme.ui.viewmodel.SharedViewModel
 import java.util.*
 
+/**
+ * Created by adm on 02/02/2018.
+ *
+ * input start, end are mandatory to request DirectionAPI.
+ * waypoints may be added
+ *
+ * Travel can be namely saved upon results or if played at least once,
+ * otherwise it'll be saved as temporary for maintained state purposes.
+ * If not saved after being played, records will be wiped from the database
+ * (still, infos about the travel remains as temporary)
+ */
 
 class TravelFragment : Fragment(), PendingResult.Callback<DirectionsResult> {
 
@@ -92,6 +96,13 @@ class TravelFragment : Fragment(), PendingResult.Callback<DirectionsResult> {
                 svm!!.monitor(it)
             }
         })
+
+        travel.observe(this, Observer { it ->
+            if (null != it)
+                if (it.name.contentEquals(BuildConfig.TMP_NAME))
+                    svm!!.write(it)     // save tmp file only
+
+        })
     }
 
     override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
@@ -125,33 +136,36 @@ class TravelFragment : Fragment(), PendingResult.Callback<DirectionsResult> {
 
         if (TravelService.travelling) mnuClear?.isVisible = false else mnuClear?.isVisible = svm!!.canCancel
 
-        if (null != travel.value) {
-            mnuAskSave?.setIcon(R.drawable.ic_save)
-            if (travel.value!!.name.contentEquals(BuildConfig.TMP_NAME)) {
-                mnuAskSave?.isVisible = true
-                mnuAskSave?.isChecked = true
-            } else {
-                mnuAskSave?.isVisible = false
-            }
-        } else {
-            mnuAskSave?.setIcon(R.drawable.ic_directions)
-            if (null == svm!!.travelSet.value) {
-                mnuAskSave?.isVisible = false
-            } else {
-                if (svm!!.travelSet.value!!.originAddress.isNotEmpty() && svm!!.travelSet.value!!.destinationAddress.isNotEmpty()) {
+        if (TravelService.travelling)
+            mnuAskSave?.isVisible = false
+        else
+            if (null != travel.value) {
+                mnuAskSave?.setIcon(R.drawable.ic_save)
+                if (travel.value!!.name.contentEquals(BuildConfig.TMP_NAME)) {
                     mnuAskSave?.isVisible = true
-                    mnuAskSave?.isChecked = false
+                    mnuAskSave?.isChecked = true
                 } else {
                     mnuAskSave?.isVisible = false
                 }
+            } else {
+                mnuAskSave?.setIcon(R.drawable.ic_directions)
+                if (null == svm!!.travelSet.value) {
+                    mnuAskSave?.isVisible = false
+                } else {
+                    if (svm!!.travelSet.value!!.originAddress.isNotEmpty() && svm!!.travelSet.value!!.destinationAddress.isNotEmpty()) {
+                        mnuAskSave?.isVisible = true
+                        mnuAskSave?.isChecked = false
+                    } else {
+                        mnuAskSave?.isVisible = false
+                    }
+                }
             }
-        }
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         super.onOptionsItemSelected(item)
 
-         when (item.itemId) {
+        when (item.itemId) {
 
             R.id.opt_clear -> {
                 travel.value = null
@@ -324,7 +338,7 @@ class TravelFragment : Fragment(), PendingResult.Callback<DirectionsResult> {
 
     }
 
-    fun startStopTravel() {
+    internal fun startStopTravel() {
         if (!TravelService.travelling) {
             // attempt start
             if (!(activity!!.application as BaseApp).travelService!!.startMotion(svm!!.travelSet.value!!.max + 1))
@@ -338,10 +352,7 @@ class TravelFragment : Fragment(), PendingResult.Callback<DirectionsResult> {
                     ActivityCompat.requestPermissions(activity!!,
                             arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
                             PERM_START_MOTION)
-            //else
-                //makF.enable(false)
         } else {
-            //makF.enable(true)
             // stop
             (activity!!.application as BaseApp).travelService!!.stopMotion()
             svm!!.travelSet.value!!.max += 1

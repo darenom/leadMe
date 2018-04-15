@@ -180,9 +180,6 @@ class SharedViewModel(app: Application) : AndroidViewModel(app) {
     // handling map click inputs
     fun setLocationAs(a: PointType?, pos: LatLng): Boolean {
 
-        if (currentMax >= SharedViewModel.wayMax)
-            return false
-
         val b: PointType? = a ?: when {
             travelSet.value!!.originAddress.isEmpty() -> PointType.ORIGIN
             travelSet.value!!.destinationAddress.isEmpty() -> PointType.DESTINATION
@@ -194,6 +191,8 @@ class SharedViewModel(app: Application) : AndroidViewModel(app) {
             PointType.ORIGIN -> travelSet.value!!.originPosition = "${pos.lat}/${pos.lng}"
             PointType.DESTINATION -> travelSet.value!!.destinationPosition = "${pos.lat}/${pos.lng}"
             PointType.WAYPOINT -> {
+                if (currentMax >= SharedViewModel.wayMax)
+                    return false
                 travelSet.value!!.waypointPosition += "${pos.lat}/${pos.lng}#"
                 currentMax++
             }

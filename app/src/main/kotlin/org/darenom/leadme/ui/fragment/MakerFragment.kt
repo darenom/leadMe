@@ -16,9 +16,7 @@ import android.support.v4.content.ContextCompat
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.helper.ItemTouchHelper
 import android.view.*
-import android.view.View.OnTouchListener
 import android.view.inputmethod.EditorInfo
-import android.view.inputmethod.InputMethodManager
 import android.widget.*
 import com.google.maps.model.LatLng
 import kotlinx.android.synthetic.main.fragment_maker.*
@@ -36,20 +34,6 @@ import org.darenom.leadme.ui.viewmodel.SharedViewModel
 import java.util.*
 
 
-/**
- * Created by adm on 02/02/2018.
- *
- * written travel maker:
- *
- * input start, end are mandatory to request DirectionAPI.
- * waypoints may be added
- *
- * Travel can be namely saved upon results or if played at least once,
- * otherwise it'll be saved as temporary for maintained state purposes.
- * If not saved after being played, records will be wiped from the database
- * (still, infos about the travel remains as temporary)
- */
-
 class MakerFragment : Fragment(), WaypointsChanged {
 
     private var mBinding: FragmentMakerBinding? = null
@@ -59,12 +43,9 @@ class MakerFragment : Fragment(), WaypointsChanged {
     private var mItemTouchHelper: ItemTouchHelper? = null
 
     private var focus = View.OnFocusChangeListener { v, hasFocus ->
-        if (!hasFocus) {
+        if (!hasFocus)
             if ((v as EditText).text.toString().isNotEmpty())
                 setPoint(v.id, v.text.toString())
-            (activity!!.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager)
-                    .hideSoftInputFromWindow(v.windowToken, 0)
-        }
     }
 
     private var editor = TextView.OnEditorActionListener { v, actionId, event ->
@@ -74,33 +55,46 @@ class MakerFragment : Fragment(), WaypointsChanged {
                         (actionId == EditorInfo.IME_ACTION_NEXT) ||
                         (actionId == EditorInfo.IME_ACTION_DONE)))
 
-            when (v.id) {
-                R.id.edtFrom -> if (svm!!.travelSet.value!!.destinationAddress.isEmpty()) edtTo.requestFocus() else edtWaypoint.requestFocus()
-                R.id.edtTo -> if (svm!!.travelSet.value!!.originAddress.isEmpty()) edtFrom.requestFocus() else edtWaypoint.requestFocus()
-                R.id.edtWaypoint -> {
-                    when {
-                        svm!!.travelSet.value!!.originAddress.isEmpty() -> edtFrom.requestFocus()
-                        svm!!.travelSet.value!!.destinationAddress.isEmpty() -> edtTo.requestFocus()
-                        (v as EditText).text.toString().isNotEmpty() -> {
-                            (activity!!.application as BaseApp).mAppExecutors!!.mainThread().execute({ edtWaypoint.requestFocus() })
+            if ((v as EditText).text.toString().isNotEmpty())
+
+                when (v.id) {
+
+                    R.id.edtFrom ->
+                        if (svm!!.travelSet.value!!.destinationAddress.isEmpty())
+                            edtTo.requestFocus()
+                        else edtWaypoint.requestFocus()
+
+                    R.id.edtTo ->
+                        if (svm!!.travelSet.value!!.originAddress.isEmpty())
+                            edtFrom.requestFocus()
+                        else edtWaypoint.requestFocus()
+
+                    R.id.edtWaypoint ->
+                        when {
+                            svm!!.travelSet.value!!.originAddress.isEmpty() ->
+                                edtFrom.requestFocus()
+                            svm!!.travelSet.value!!.destinationAddress.isEmpty() ->
+                                edtTo.requestFocus()
+                            v.text.toString().isNotEmpty() ->
+                                (activity!!.application as BaseApp).mAppExecutors!!.mainThread()
+                                        .execute({ edtWaypoint.requestFocus() })
                         }
-                    }
+
                 }
-            }
         false
     }
 
-    private var touch = OnTouchListener { v, event ->
+    private var touch = View.OnTouchListener { v, event ->
         if (event.action == MotionEvent.ACTION_UP) {
             if (event.rawX >= v.right - (v as EditText).compoundDrawables[2].bounds.width()) {
                 if ((activity!!.application as BaseApp).travelService!!.hasPos) {
                     if (null != TravelService.here) {
                         when (v.id) {
-                            edtFrom.id -> svm!!.setLocationAs(SharedViewModel.Companion.PointType.ORIGIN,
+                            R.id.edtFrom -> svm!!.setLocationAs(SharedViewModel.Companion.PointType.ORIGIN,
                                     LatLng(TravelService.here!!.latitude, TravelService.here!!.longitude))
-                            edtTo.id -> svm!!.setLocationAs(SharedViewModel.Companion.PointType.DESTINATION,
+                            R.id.edtTo -> svm!!.setLocationAs(SharedViewModel.Companion.PointType.DESTINATION,
                                     LatLng(TravelService.here!!.latitude, TravelService.here!!.longitude))
-                            edtWaypoint.id -> svm!!.setLocationAs(SharedViewModel.Companion.PointType.WAYPOINT,
+                            R.id.edtWaypoint -> svm!!.setLocationAs(SharedViewModel.Companion.PointType.WAYPOINT,
                                     LatLng(TravelService.here!!.latitude, TravelService.here!!.longitude))
                         }
                     } else {
@@ -117,7 +111,6 @@ class MakerFragment : Fragment(), WaypointsChanged {
                                 arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
                                 TravelFragment.PERM_SET_HERE)
                 }
-
                 return@OnTouchListener true
             }
         }
@@ -129,30 +122,26 @@ class MakerFragment : Fragment(), WaypointsChanged {
         setHasOptionsMenu(true)
         retainInstance = true
         svm = ViewModelProviders.of(activity!!).get(SharedViewModel::class.java)
+
+        activity!!.window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN)
+
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
         mBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_maker, container, false)
 
-        mBinding!!.rvWaypoints.adapter = WaypointAdapter("", "", this)
-        mBinding!!.rvWaypoints.layoutManager = LinearLayoutManager(context)
-
-        mItemTouchHelper = ItemTouchHelper(SimpleItemTouchHelperCallback(
-                mBinding!!.rvWaypoints.adapter as ItemTouchHelperAdapter))
-        mItemTouchHelper!!.attachToRecyclerView(mBinding!!.rvWaypoints)
-
         mBinding!!.edtFrom.setOnEditorActionListener(editor)
         mBinding!!.edtFrom.onFocusChangeListener = focus
-        mBinding!!.edtFrom.setOnTouchListener(touch)
+        (mBinding!!.edtFrom as View).setOnTouchListener(touch)
 
         mBinding!!.edtTo.setOnEditorActionListener(editor)
         mBinding!!.edtTo.onFocusChangeListener = focus
-        mBinding!!.edtTo.setOnTouchListener(touch)
+        (mBinding!!.edtTo as View).setOnTouchListener(touch)
 
         mBinding!!.edtWaypoint.setOnEditorActionListener(editor)
         mBinding!!.edtWaypoint.onFocusChangeListener = focus
-        mBinding!!.edtWaypoint.setOnTouchListener(touch)
+        (mBinding!!.edtWaypoint as View).setOnTouchListener(touch)
 
         mBinding!!.spinnerMode.adapter = TravelModeAdapter(context!!, R.layout.item_image)
         mBinding!!.spinnerMode.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
@@ -167,6 +156,13 @@ class MakerFragment : Fragment(), WaypointsChanged {
             override fun onNothingSelected(parent: AdapterView<out Adapter>?) {}
         }
 
+        mBinding!!.rvWaypoints.adapter = WaypointAdapter("", "", this)
+        mBinding!!.rvWaypoints.layoutManager = LinearLayoutManager(context)
+
+        mItemTouchHelper = ItemTouchHelper(SimpleItemTouchHelperCallback(
+                mBinding!!.rvWaypoints.adapter as ItemTouchHelperAdapter))
+        mItemTouchHelper!!.attachToRecyclerView(mBinding!!.rvWaypoints)
+
         return mBinding!!.root
     }
 
@@ -178,6 +174,9 @@ class MakerFragment : Fragment(), WaypointsChanged {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         super.onOptionsItemSelected(item)
         when (item.itemId) {
+            R.id.opt_clear -> {
+                mBinding!!.edtFrom.requestFocus()
+            }
             R.id.opt_play_stop -> {
                 if (TravelService.travelling)
                     enable(false)
@@ -207,27 +206,31 @@ class MakerFragment : Fragment(), WaypointsChanged {
             if (null != it) {
                 mBinding!!.travelSet = it
                 (mBinding!!.rvWaypoints.adapter as WaypointAdapter).setList(it.waypointAddress, it.waypointPosition)
-                edtWaypoint.setText("")
+                mBinding!!.edtWaypoint.setText("")
             }
         })
 
+        travel.observe(this, Observer { it ->
+            if (null == it)
+                enable(true)
+            else
+                enable(false)
+
+        })
+
+        mBinding!!.edtFrom.requestFocus()
     }
 
     // UI locker
     private fun enable(b: Boolean) {
-        edtFrom!!.isEnabled = b
-        edtTo!!.isEnabled = b
-        edtWaypoint!!.isEnabled = b
+
+        mBinding!!.enabled = b
 
         if (b) {
             mItemTouchHelper!!.attachToRecyclerView(mBinding!!.rvWaypoints)
         } else {
             mItemTouchHelper!!.attachToRecyclerView(null)
         }
-
-        search_swap!!.isEnabled = b
-        spinnerMode!!.isEnabled = b
-        edtWaypoint!!.visibility = if (!b) View.GONE else View.VISIBLE
     }
 
     private fun setPoint(i: Int, s: String) {

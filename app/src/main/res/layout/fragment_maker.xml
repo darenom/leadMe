@@ -8,6 +8,10 @@
         <import type="android.view.View" />
 
         <variable
+            name="enabled"
+            type="boolean"/>
+
+        <variable
             name="travelSet"
             type="org.darenom.leadme.db.model.TravelSet" />
     </data>
@@ -33,19 +37,18 @@
                 android:layout_alignParentTop="true"
                 android:layout_marginStart="@dimen/spacer"
                 android:drawableEnd="@drawable/ic_opt_pos"
-                android:focusableInTouchMode="true"
-                android:clickable="true"
-                android:focusable="true"
-                android:inputType="textPostalAddress|textAutoComplete" />
+                android:enabled="@{enabled}"
+                android:inputType="textPostalAddress" />
 
             <Spinner
                 android:id="@+id/spinnerMode"
-
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentStart="true"
                 android:layout_alignParentTop="true"
                 android:layout_marginTop="@dimen/appbar_padding_top"
+                android:enabled="@{enabled}"
+                android:focusable="true"
                 android:selectedItemPosition="@{travelSet.mode}" />
 
             <android.support.v7.widget.RecyclerView
@@ -81,23 +84,19 @@
                     android:layout_height="wrap_content"
                     android:hint="@string/hint_origin"
                     android:drawableEnd="@drawable/ic_opt_pos"
-                    android:focusableInTouchMode="true"
-                    android:clickable="true"
-                    android:focusable="true"
                     android:text="@{travelSet.originAddress}"
-                    android:inputType="textPostalAddress|textAutoComplete" />
+                    android:enabled="@{enabled}"
+                    android:inputType="textPostalAddress" />
 
                 <EditText
                     android:id="@+id/edtTo"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:focusableInTouchMode="true"
-                    android:clickable="true"
-                    android:focusable="true"
                     android:hint="@string/hint_destination"
                     android:drawableEnd="@drawable/ic_opt_pos"
                     android:text="@{travelSet.destinationAddress}"
-                    android:inputType="textPostalAddress|textAutoComplete" />
+                    android:enabled="@{enabled}"
+                    android:inputType="textPostalAddress" />
 
             </LinearLayout>
 
@@ -109,6 +108,7 @@
                 android:layout_centerInParent="true"
                 android:background="@color/colorPrimary"
                 android:onClick="swapFromTo"
+                android:enabled="@{enabled}"
                 android:src="@drawable/ic_swap_vert_black_24dp"
                 tools:ignore="ContentDescription" />
 

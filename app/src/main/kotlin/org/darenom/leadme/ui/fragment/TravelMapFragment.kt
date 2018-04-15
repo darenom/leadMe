@@ -54,6 +54,8 @@ class TravelMapFragment : Fragment(), OnMapReadyCallback,
 
     private var subscribed: Boolean = false
 
+    private var processing: Boolean = false
+
     private var infoWindowId: String = ""
 
     private val mMapReceiver = object : BroadcastReceiver() {
@@ -91,7 +93,8 @@ class TravelMapFragment : Fragment(), OnMapReadyCallback,
         svm = ViewModelProviders.of(activity!!).get(SharedViewModel::class.java)
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
+                              savedInstanceState: Bundle?): View? {
         mBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_map, container, false)
         (childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment).getMapAsync(this)
         return mBinding!!.root
@@ -120,10 +123,8 @@ class TravelMapFragment : Fragment(), OnMapReadyCallback,
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         super.onOptionsItemSelected(item)
         when (item.itemId) {
-            R.id.opt_play_stop -> {
-                if (!TravelService.travelling)
-                    mBinding!!.showDirection = false
-            }
+            R.id.opt_clear -> infoWindowId = ""
+            R.id.opt_play_stop -> if (!TravelService.travelling) mBinding!!.showDirection = false
         }
         return false
     }
@@ -131,6 +132,39 @@ class TravelMapFragment : Fragment(), OnMapReadyCallback,
     override fun onStop() {
         super.onStop()
         LocalBroadcastManager.getInstance(context!!).unregisterReceiver(mMapReceiver)
+    }
+
+    private fun subscribeUI() {
+        subscribed = true
+
+        svm!!.optCompass.observe(this, Observer { it ->
+            if (null != it) {
+                mBinding!!.showCompass = it
+                (activity!!.application as BaseApp).travelService!!.enableCompass(it, 0)
+            }
+        })
+
+        svm!!.travelSet.observe(this, Observer { it ->
+            if (null != it) {
+                if (null == travel.value) {
+                    drawSet(it)     // otherwise draw from input
+                }
+                activity!!.invalidateOptionsMenu()
+            }
+        })
+
+        travel.observe(this, Observer { it ->
+            if (null != it) {
+                if (!processing) { // long run op, fool
+                    mBinding!!.showProgress = true
+                    processing = true
+                    drawTravel(it)
+                }
+            } else {
+                gm?.clear()
+            }
+            activity!!.invalidateOptionsMenu()
+        })
     }
 
     // region Listeners
@@ -243,51 +277,6 @@ class TravelMapFragment : Fragment(), OnMapReadyCallback,
 
     }
     // endregion
-
-    private fun subscribeUI() {
-        subscribed = true
-
-        svm!!.optCompass.observe(this, Observer { it ->
-            if (null != it) {
-                mBinding!!.showCompass = it
-                (activity!!.application as BaseApp).travelService!!.enableCompass(it, 0)
-            }
-        })
-
-        svm!!.travelSet.observe(this, Observer { it ->
-            if (null != it) {
-                if (null == travel.value) {
-                    drawSet(it)     // otherwise draw from input
-                }
-                activity!!.invalidateOptionsMenu()
-            }
-        })
-
-        travel.observe(this, Observer { it ->
-            if (null != it) {
-                if (!processing) { // long time running ops, travel change may occur multiple at a time
-                    mBinding!!.showProgress = true
-                    processing = true
-                    drawTravel(it)
-                    // save tmp file only
-                    if (it.name.contentEquals(BuildConfig.TMP_NAME))
-                        svm!!.write(travel.value!!)
-                }
-            } else {
-                gm?.clear()
-            }
-            activity!!.invalidateOptionsMenu()
-        })
-    }
-
-    private var processing = false
-
-    fun clear() {
-        infoWindowId = ""
-        if (null != gm) {
-            gm!!.clear()
-        }
-    }
 
     // region DrawOnMap
     private fun drawSet(it: TravelSetEntity) {
