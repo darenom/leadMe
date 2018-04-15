@@ -9,11 +9,15 @@ import android.os.Bundle
 import android.support.annotation.Nullable
 import android.support.v4.app.Fragment
 import android.view.*
+import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.activity_travel.*
+import org.darenom.leadme.BaseApp
 import org.darenom.leadme.R
 import org.darenom.leadme.databinding.FragmentTravelsetListBinding
 import org.darenom.leadme.db.entities.TravelSetEntity
 import org.darenom.leadme.db.model.TravelSet
+import org.darenom.leadme.service.TravelService
+import org.darenom.leadme.service.TravelService.Companion.travel
 import org.darenom.leadme.ui.StatisticsActivity
 import org.darenom.leadme.ui.adapter.TravelSetAdapter
 import org.darenom.leadme.ui.callback.TravelSetClickCallback
@@ -35,7 +39,6 @@ class TravelListFragment : Fragment() {
     private val mTravelSetClickCallback = object : TravelSetClickCallback {
         override fun loadInMap(travelSet: TravelSet) {
             svm!!.name.value = travelSet.name
-           // activity!!.bottombar.selectedItemId = R.id.action_map
         }
 
         override fun onClick(travelSet: TravelSet) {
@@ -81,6 +84,14 @@ class TravelListFragment : Fragment() {
                 mTravelSetAdapter!!.setTravelSetList(travelSetList)
             } else { mBinding!!.isLoading = true }
             mBinding!!.executePendingBindings()
+        })
+
+        viewModel.name.observe(this, Observer { it ->
+            if (null != it) {
+                // todo async task
+                svm!!.read(it) // set Travel
+                svm!!.monitor(it) // set TravelSet
+            }
         })
     }
 

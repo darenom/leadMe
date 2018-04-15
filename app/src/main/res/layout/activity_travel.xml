@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/colorPrimary"
-    tools:context="org.darenom.leadme.ui.TravelFragment">
+    tools:context="org.darenom.leadme.ui.fragment.TravelFragment">
 
     <com.sothree.slidinguppanel.SlidingUpPanelLayout
         xmlns:sothree="http://schemas.android.com/apk/res-auto"
@@ -24,7 +24,7 @@
 
         <fragment
             android:id="@+id/maker"
-            android:name="org.darenom.leadme.ui.fragment.MakerFragment"
+            android:name="org.darenom.leadme.ui.fragment.TravelMakerFragment"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:gravity="center" />

@@ -18,12 +18,6 @@
     <string name="opt_start_stop">Start / Stop travelling</string>
     <string name="opt_direction_save">Ask directions / Save travel</string>
 
-    <!-- Menu bottom -->
-    <string name="action_map">Map</string>
-    <string name="action_maker">Maker</string>
-    <string name="action_stat">Stat</string>
-
-
     <!-- Map -->
     <string name="cant_travel">Location must be active to start travelling</string>
     <string name="wont_travel">Need permission to start travelling</string>
@@ -64,23 +58,15 @@
 
     <!-- Drawables -->
     <drawable name="ic_play">@android:drawable/ic_media_play</drawable>
-    //start travel
     <drawable name="ic_pause">@android:drawable/ic_media_pause</drawable>
-    // pause travel
     <drawable name="ic_clear_cancel">@android:drawable/ic_menu_close_clear_cancel</drawable>
-    //clear map
     <drawable name="ic_open">@android:drawable/ic_menu_add</drawable>
-    // open ??? in use?
     <drawable name="ic_delete">@android:drawable/ic_menu_delete</drawable>
-    // delete travel
     <drawable name="ic_save">@android:drawable/ic_menu_save</drawable>
-    // save travel
     <drawable name="ic_directions">@android:drawable/ic_menu_directions</drawable>
-    //request directions
     <drawable name="ic_map">@android:drawable/ic_dialog_map</drawable>
     <drawable name="ic_maker">@android:drawable/ic_menu_edit</drawable>
     <drawable name="ic_stat">@android:drawable/ic_menu_agenda</drawable>
-    // compute stats
     <drawable name="ic_opt_compass">@android:drawable/ic_menu_compass</drawable>
     <drawable name="ic_opt_pos">@android:drawable/ic_menu_mylocation</drawable>
 
@@ -91,6 +77,10 @@
         <item>ic_directions_bike_black_24dp</item>
         <item>ic_directions_transit_black_24dp</item>
     </string-array>
+
+    <string name="nav_travel">Travel</string>
+    <string name="nav_list">Open</string>
+
     <string name="title_activity_main">MainActivity</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>

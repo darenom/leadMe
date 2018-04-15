@@ -50,7 +50,6 @@ class SharedViewModel(app: Application) : AndroidViewModel(app) {
         } else false
 
     // region SharedPrefs
-
     var name = object : MutableLiveData<String>() {
         override fun setValue(value: String) {
             super.setValue(value)
@@ -100,22 +99,19 @@ class SharedViewModel(app: Application) : AndroidViewModel(app) {
 
     // reset to empty
     fun clear() {
-        currentMax = 0
-        // clearing a tmp
-        if (travelSet.value!!.name.contentEquals(BuildConfig.TMP_NAME)) {
-            delete(BuildConfig.TMP_NAME)
-            travel.value = null
-            travelSet.value = TravelSetEntity()
-            update(travelSet.value!!)
-        } else {
-            this.name.value = BuildConfig.TMP_NAME
-        }
 
+        if (travelSet.value!!.name.contentEquals(BuildConfig.TMP_NAME))
+            delete(BuildConfig.TMP_NAME)
+
+        currentMax = 0
+        travel.value = null
+        travelSet.value = TravelSetEntity()
+        update(travelSet.value!!)
+        name.value = BuildConfig.TMP_NAME
     }
 
     // travelSet cursor
     fun monitor(name: String) {
-
         if (travelSet.hasActiveObservers())
             if (null != dbTravelSet)
                 travelSet.removeSource(dbTravelSet!!)
