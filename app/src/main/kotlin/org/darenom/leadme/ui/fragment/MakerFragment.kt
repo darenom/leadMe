@@ -22,7 +22,7 @@ import org.darenom.leadme.BaseApp
 import org.darenom.leadme.R
 import org.darenom.leadme.databinding.FragmentMakerBinding
 import org.darenom.leadme.service.TravelService.Companion.travel
-import org.darenom.leadme.ui.TravelActivity
+import org.darenom.leadme.ui.TravelFragment
 import org.darenom.leadme.ui.adapter.WaypointAdapter
 import org.darenom.leadme.ui.adapter.helper.ItemTouchHelperAdapter
 import org.darenom.leadme.ui.adapter.helper.SimpleItemTouchHelperCallback
@@ -111,12 +111,12 @@ class MakerFragment : Fragment(), WaypointsChanged {
                     if (ContextCompat.checkSelfPermission(context!!,
                                     Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED)
                     //  missing feature
-                        startActivityForResult(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS), TravelActivity.LOCATION_SET_HERE)
+                        startActivityForResult(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS), TravelFragment.LOCATION_SET_HERE)
                     else
                     // missing perm
                         ActivityCompat.requestPermissions(activity!!,
                                 arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                                TravelActivity.PERM_SET_HERE)
+                                TravelFragment.PERM_SET_HERE)
                 }
 
                 return@OnTouchListener true
@@ -207,13 +207,13 @@ class MakerFragment : Fragment(), WaypointsChanged {
 
     // UI locker
     internal fun enable(b: Boolean) {
-        edtFrom.isEnabled = b
-        edtTo.isEnabled = b
-        edtWaypoint.isEnabled = b
-        rvWaypoints.isEnabled = b
-        search_swap.isEnabled = b
-        spinnerMode.isEnabled = b
-        edtWaypoint.visibility = if (!b) View.GONE else View.VISIBLE
+        edtFrom?.isEnabled = b
+        edtTo?.isEnabled = b
+        edtWaypoint?.isEnabled = b
+        rvWaypoints?.isEnabled = b
+        search_swap?.isEnabled = b
+        spinnerMode?.isEnabled = b
+        edtWaypoint?.visibility = if (!b) View.GONE else View.VISIBLE
     }
 
     private fun setPoint(i: Int, s: String) {
@@ -229,7 +229,7 @@ class MakerFragment : Fragment(), WaypointsChanged {
                 svm!!.setPoint(a, s)
 
         } else
-            activity!!.startActivityForResult(Intent(Settings.ACTION_WIFI_SETTINGS), TravelActivity.CHECK_NET_ACCESS)
+            activity!!.startActivityForResult(Intent(Settings.ACTION_WIFI_SETTINGS), TravelFragment.CHECK_NET_ACCESS)
 
     }
 

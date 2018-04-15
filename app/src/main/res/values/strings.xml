@@ -63,16 +63,24 @@
     <string name="loading_comments">loading comments</string>
 
     <!-- Drawables -->
-    <drawable name="ic_play">@android:drawable/ic_media_play</drawable> //start travel
-    <drawable name="ic_pause">@android:drawable/ic_media_pause</drawable>   // pause travel
-    <drawable name="ic_clear_cancel">@android:drawable/ic_menu_close_clear_cancel</drawable>    //clear map
-    <drawable name="ic_open">@android:drawable/ic_menu_add</drawable>   // open ??? in use?
-    <drawable name="ic_delete">@android:drawable/ic_menu_delete</drawable>  // delete travel
-    <drawable name="ic_save">@android:drawable/ic_menu_save</drawable>  // save travel
-    <drawable name="ic_directions">@android:drawable/ic_menu_directions</drawable>  //request directions
+    <drawable name="ic_play">@android:drawable/ic_media_play</drawable>
+    //start travel
+    <drawable name="ic_pause">@android:drawable/ic_media_pause</drawable>
+    // pause travel
+    <drawable name="ic_clear_cancel">@android:drawable/ic_menu_close_clear_cancel</drawable>
+    //clear map
+    <drawable name="ic_open">@android:drawable/ic_menu_add</drawable>
+    // open ??? in use?
+    <drawable name="ic_delete">@android:drawable/ic_menu_delete</drawable>
+    // delete travel
+    <drawable name="ic_save">@android:drawable/ic_menu_save</drawable>
+    // save travel
+    <drawable name="ic_directions">@android:drawable/ic_menu_directions</drawable>
+    //request directions
     <drawable name="ic_map">@android:drawable/ic_dialog_map</drawable>
     <drawable name="ic_maker">@android:drawable/ic_menu_edit</drawable>
-    <drawable name="ic_stat">@android:drawable/ic_menu_agenda</drawable> // compute stats
+    <drawable name="ic_stat">@android:drawable/ic_menu_agenda</drawable>
+    // compute stats
     <drawable name="ic_opt_compass">@android:drawable/ic_menu_compass</drawable>
     <drawable name="ic_opt_pos">@android:drawable/ic_menu_mylocation</drawable>
 
@@ -83,5 +91,11 @@
         <item>ic_directions_bike_black_24dp</item>
         <item>ic_directions_transit_black_24dp</item>
     </string-array>
+    <string name="title_activity_main">MainActivity</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="nav_header_title">Android Studio</string>
+    <string name="nav_header_subtitle">android.studio@android.com</string>
+    <string name="nav_header_desc">Navigation header</string>
 
 </resources>

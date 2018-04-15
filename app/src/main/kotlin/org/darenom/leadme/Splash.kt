@@ -7,7 +7,6 @@ import android.os.Handler
 import android.support.annotation.Nullable
 import android.view.animation.AnimationUtils
 import kotlinx.android.synthetic.main.activity_splash.*
-import org.darenom.leadme.ui.TravelActivity
 
 
 /**
@@ -22,7 +21,7 @@ class Splash : Activity() {
         setContentView(R.layout.activity_splash)
         RunAnimation()
         Handler().postDelayed({
-            startActivity(Intent(this@Splash, TravelActivity::class.java))
+            startActivity(Intent(this@Splash, MainActivity::class.java))
             finish()
         }, 3000)
     }

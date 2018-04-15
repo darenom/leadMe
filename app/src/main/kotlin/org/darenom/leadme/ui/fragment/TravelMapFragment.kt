@@ -3,7 +3,10 @@ package org.darenom.leadme.ui.fragment
 import android.Manifest
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.databinding.DataBindingUtil
 import android.graphics.Color
@@ -11,6 +14,7 @@ import android.os.Bundle
 import android.provider.Settings
 import android.support.v4.app.Fragment
 import android.support.v4.content.ContextCompat
+import android.support.v4.content.LocalBroadcastManager
 import android.view.*
 import android.widget.Toast
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -19,15 +23,18 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
 import com.google.maps.android.PolyUtil
+import kotlinx.android.synthetic.main.layout_view_compass.*
 import org.darenom.leadme.BaseApp
 import org.darenom.leadme.BuildConfig
+import org.darenom.leadme.MainActivity
 import org.darenom.leadme.R
 import org.darenom.leadme.databinding.FragmentMapBinding
 import org.darenom.leadme.db.entities.TravelSetEntity
 import org.darenom.leadme.model.Travel
+import org.darenom.leadme.service.TravelService
 import org.darenom.leadme.service.TravelService.Companion.travel
 import org.darenom.leadme.service.TravelService.Companion.travelling
-import org.darenom.leadme.ui.TravelActivity.Companion.CHECK_NET_ACCESS
+import org.darenom.leadme.ui.TravelFragment.Companion.CHECK_NET_ACCESS
 import org.darenom.leadme.ui.viewmodel.SharedViewModel
 import java.util.*
 
@@ -49,10 +56,38 @@ class TravelMapFragment : Fragment(), OnMapReadyCallback,
 
     private var infoWindowId: String = ""
 
+    private val mMapReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            when (intent.action) {
+            // point to north
+                TravelService.ORIENTATION_CHANGED -> {
+                    layout_compass?.onOrientationChanged(intent.getFloatArrayExtra(TravelService.ORIENTATION_CHANGED))
+                }
+            // point to closest
+                TravelService.DIRECTION_CHANGED -> {
+                    mBinding?.showDirection = true
+                    layout_compass?.onDirectionChanged(intent.getFloatExtra(TravelService.DIRECTION_CHANGED, 0f))
+                }
+                TravelService.ARRIVED -> {
+                    if (TravelService.travelling)
+                        (activity!! as MainActivity).startStopTravel(null)
+                }
+                TravelService.MY_WAY_BACK -> {
+                    mBinding?.showDirection = false
+                }
+                TravelService.SEGMENT_CHANGED -> {
+                    val lats = intent.getParcelableArrayListExtra<com.google.android.gms.maps.model.LatLng>(TravelService.SEGMENT_SIDES)
+                    val length = intent.getFloatExtra(TravelService.SEGMENT_LENGTH, 0f)
+                    redraw(lats, length)
+                }
+            }
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setHasOptionsMenu(false)
-        retainInstance = true   // onConfigChange retain
+        retainInstance = true
         svm = ViewModelProviders.of(activity!!).get(SharedViewModel::class.java)
     }
 
@@ -65,6 +100,26 @@ class TravelMapFragment : Fragment(), OnMapReadyCallback,
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         subscribeUI()
+    }
+
+    override fun onStart() {
+        super.onStart()
+
+        LocalBroadcastManager.getInstance(context!!).registerReceiver(mMapReceiver,
+                IntentFilter(TravelService.ORIENTATION_CHANGED))
+        LocalBroadcastManager.getInstance(context!!).registerReceiver(mMapReceiver,
+                IntentFilter(TravelService.DIRECTION_CHANGED))
+        LocalBroadcastManager.getInstance(context!!).registerReceiver(mMapReceiver,
+                IntentFilter(TravelService.ARRIVED))
+        LocalBroadcastManager.getInstance(context!!).registerReceiver(mMapReceiver,
+                IntentFilter(TravelService.MY_WAY_BACK))
+        LocalBroadcastManager.getInstance(context!!).registerReceiver(mMapReceiver,
+                IntentFilter(TravelService.SEGMENT_CHANGED))
+    }
+
+    override fun onStop() {
+        super.onStop()
+        LocalBroadcastManager.getInstance(context!!).unregisterReceiver(mMapReceiver)
     }
 
     // region Listeners
@@ -184,6 +239,7 @@ class TravelMapFragment : Fragment(), OnMapReadyCallback,
         svm!!.optCompass.observe(this, Observer { it ->
             if (null != it) {
                 mBinding!!.showCompass = it
+                (activity!!.application as BaseApp).travelService!!.enableCompass(it, 0)
             }
         })
 

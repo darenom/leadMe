@@ -6,8 +6,7 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
 
-    <uses-feature android:name="android.hardware.location.gps"/>
-
+    <uses-feature android:name="android.hardware.location.gps" />
     <uses-feature
         android:name="android.hardware.sensor.accelerometer"
         android:required="false" />
@@ -23,7 +22,6 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="@string/google_maps_key" />
@@ -34,17 +32,25 @@
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".ui.TravelActivity"
-            android:theme="@style/AppTheme.NoActionBar"/>
-        <activity android:name=".ui.StatisticsActivity"
-            android:parentActivityName=".ui.TravelActivity"
-            android:theme="@style/AppTheme.NoActionBar"/>
+        <activity
+            android:name=".ui.TravelFragment"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".ui.StatisticsActivity"
+            android:parentActivityName=".ui.TravelFragment"
+            android:theme="@style/AppTheme.NoActionBar" />
+
         <service android:name=".service.TravelService" />
 
+        <activity
+            android:name=".MainActivity"
+            android:label="@string/title_activity_main"
+            android:theme="@style/AppTheme.NoActionBar">
+        </activity>
     </application>
-
 
 </manifest>
