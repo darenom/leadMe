@@ -142,7 +142,7 @@ class TravelService : Service(),
             // update position
             here = location
             // if travelling
-            if (travelling && travel.value!!. points!!.isNotEmpty()) {
+            if (travelling && travel.value!!.points!!.isNotEmpty()) {
                 // stamp bdd
                 (application as BaseApp).mAppExecutors!!.diskIO().execute {
                     (application as BaseApp).database.travelStampDao().insert(TravelStampEntity(

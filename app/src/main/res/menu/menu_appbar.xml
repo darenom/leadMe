@@ -33,7 +33,7 @@
     <item
         android:id="@+id/opt_play_stop"
         android:checkable="true"
-        android:onClick="startStopTravel"
+        android:checked="false"
         android:icon="@drawable/ic_play"
         android:orderInCategory="97"
         android:title="@string/opt_start_stop"

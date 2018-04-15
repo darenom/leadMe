@@ -86,7 +86,7 @@ class TravelMapFragment : Fragment(), OnMapReadyCallback,
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setHasOptionsMenu(false)
+        setHasOptionsMenu(true)
         retainInstance = true
         svm = ViewModelProviders.of(activity!!).get(SharedViewModel::class.java)
     }
@@ -115,6 +115,17 @@ class TravelMapFragment : Fragment(), OnMapReadyCallback,
                 IntentFilter(TravelService.MY_WAY_BACK))
         LocalBroadcastManager.getInstance(context!!).registerReceiver(mMapReceiver,
                 IntentFilter(TravelService.SEGMENT_CHANGED))
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        super.onOptionsItemSelected(item)
+        when (item.itemId) {
+            R.id.opt_play_stop -> {
+                if (!TravelService.travelling)
+                    mBinding!!.showDirection = false
+            }
+        }
+        return false
     }
 
     override fun onStop() {

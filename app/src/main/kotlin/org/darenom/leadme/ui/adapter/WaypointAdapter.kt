@@ -71,6 +71,7 @@ class WaypointAdapter(waypointsaddr: String, waypointsposs: String, val callback
         Collections.swap(listaddr, fromPosition, toPosition)
         Collections.swap(listposs, fromPosition, toPosition)
         notifyItemMoved(fromPosition, toPosition)
+        callback.onListchanged(listaddr, listposs)
         return true
     }
 

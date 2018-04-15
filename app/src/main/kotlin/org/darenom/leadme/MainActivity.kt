@@ -77,7 +77,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
     fun startStopTravel(m: MenuItem?) {
         travelFragment.startStopTravel()
-        invalidateOptionsMenu()
     }
 
     fun swapFromTo(v: View) {

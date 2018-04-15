@@ -58,8 +58,6 @@ class TravelFragment : Fragment(), PendingResult.Callback<DirectionsResult> {
     }
 
     private var svm: SharedViewModel? = null
-    private val makF = MakerFragment.getInstance()
-    private val mapF = TravelMapFragment.getInstance()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -82,13 +80,11 @@ class TravelFragment : Fragment(), PendingResult.Callback<DirectionsResult> {
         svm!!.name.observe(this, Observer { it ->
             if (null != it) {
 
-                if (it.contentEquals(BuildConfig.TMP_NAME))
-                //supportActionBar.setTitle(R.string.app_name)
-                else {
-                    //activity!!.supportActionBar?.title = it
-                    if (null != mapF.mBinding)
-                        mapF.mBinding!!.showProgress = true
-                }
+                //if (it.contentEquals(BuildConfig.TMP_NAME))
+                ////supportActionBar.setTitle(R.string.app_name)
+                //else {
+                //    //activity!!.supportActionBar?.title = it
+                //}
 
                 // todo async task
                 travel.value = null
@@ -135,13 +131,11 @@ class TravelFragment : Fragment(), PendingResult.Callback<DirectionsResult> {
                 mnuAskSave?.isVisible = true
                 mnuAskSave?.isChecked = true
             } else {
-                makF.enable(false)
                 mnuAskSave?.isVisible = false
             }
         } else {
             mnuAskSave?.setIcon(R.drawable.ic_directions)
             if (null == svm!!.travelSet.value) {
-                makF.enable(true)
                 mnuAskSave?.isVisible = false
             } else {
                 if (svm!!.travelSet.value!!.originAddress.isNotEmpty() && svm!!.travelSet.value!!.destinationAddress.isNotEmpty()) {
@@ -157,17 +151,19 @@ class TravelFragment : Fragment(), PendingResult.Callback<DirectionsResult> {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         super.onOptionsItemSelected(item)
 
-        when (item.itemId) {
+         when (item.itemId) {
 
             R.id.opt_clear -> {
                 travel.value = null
-                mapF.clear()
                 svm!!.clear()
-                makF.enable(true)
             }
 
             R.id.opt_compass -> {
                 svm!!.optCompass.value = !svm!!.optCompass.value!!
+            }
+
+            R.id.opt_play_stop -> {
+                startStopTravel()
             }
 
             R.id.opt_direction_save -> {
@@ -324,8 +320,6 @@ class TravelFragment : Fragment(), PendingResult.Callback<DirectionsResult> {
 
                 })
             })
-        } else {
-            mapF.mBinding!!.showProgress = false
         }
 
     }
@@ -344,7 +338,10 @@ class TravelFragment : Fragment(), PendingResult.Callback<DirectionsResult> {
                     ActivityCompat.requestPermissions(activity!!,
                             arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
                             PERM_START_MOTION)
+            //else
+                //makF.enable(false)
         } else {
+            //makF.enable(true)
             // stop
             (activity!!.application as BaseApp).travelService!!.stopMotion()
             svm!!.travelSet.value!!.max += 1
@@ -356,6 +353,7 @@ class TravelFragment : Fragment(), PendingResult.Callback<DirectionsResult> {
 
 
         }
+        activity!!.invalidateOptionsMenu()
     }
 
     internal fun swapFromTo() {

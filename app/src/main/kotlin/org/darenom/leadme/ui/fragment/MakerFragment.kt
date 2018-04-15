@@ -1,5 +1,6 @@
 package org.darenom.leadme.ui.fragment
 
+
 import android.Manifest
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
@@ -9,18 +10,22 @@ import android.content.pm.PackageManager
 import android.databinding.DataBindingUtil
 import android.os.Bundle
 import android.provider.Settings
+import android.support.v4.app.ActivityCompat
 import android.support.v4.app.Fragment
+import android.support.v4.content.ContextCompat
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.helper.ItemTouchHelper
 import android.view.*
+import android.view.View.OnTouchListener
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.*
+import com.google.maps.model.LatLng
 import kotlinx.android.synthetic.main.fragment_maker.*
-import kotlinx.android.synthetic.main.layout_search.*
 import org.darenom.leadme.BaseApp
 import org.darenom.leadme.R
 import org.darenom.leadme.databinding.FragmentMakerBinding
+import org.darenom.leadme.service.TravelService
 import org.darenom.leadme.service.TravelService.Companion.travel
 import org.darenom.leadme.ui.TravelFragment
 import org.darenom.leadme.ui.adapter.WaypointAdapter
@@ -29,12 +34,6 @@ import org.darenom.leadme.ui.adapter.helper.SimpleItemTouchHelperCallback
 import org.darenom.leadme.ui.callback.WaypointsChanged
 import org.darenom.leadme.ui.viewmodel.SharedViewModel
 import java.util.*
-import android.support.v4.app.ActivityCompat
-import android.support.v4.content.ContextCompat
-import android.view.MotionEvent
-import android.view.View.OnTouchListener
-import com.google.maps.model.LatLng
-import org.darenom.leadme.service.TravelService
 
 
 /**
@@ -93,15 +92,15 @@ class MakerFragment : Fragment(), WaypointsChanged {
 
     private var touch = OnTouchListener { v, event ->
         if (event.action == MotionEvent.ACTION_UP) {
-            if (event.rawX >= v.getRight() - (v as EditText).getCompoundDrawables()[2].getBounds().width()) {
+            if (event.rawX >= v.right - (v as EditText).compoundDrawables[2].bounds.width()) {
                 if ((activity!!.application as BaseApp).travelService!!.hasPos) {
                     if (null != TravelService.here) {
-                        when (v.id){
+                        when (v.id) {
                             edtFrom.id -> svm!!.setLocationAs(SharedViewModel.Companion.PointType.ORIGIN,
                                     LatLng(TravelService.here!!.latitude, TravelService.here!!.longitude))
                             edtTo.id -> svm!!.setLocationAs(SharedViewModel.Companion.PointType.DESTINATION,
                                     LatLng(TravelService.here!!.latitude, TravelService.here!!.longitude))
-                            edtWaypoint.id-> svm!!.setLocationAs(SharedViewModel.Companion.PointType.WAYPOINT,
+                            edtWaypoint.id -> svm!!.setLocationAs(SharedViewModel.Companion.PointType.WAYPOINT,
                                     LatLng(TravelService.here!!.latitude, TravelService.here!!.longitude))
                         }
                     } else {
@@ -127,8 +126,8 @@ class MakerFragment : Fragment(), WaypointsChanged {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setHasOptionsMenu(false)
-        retainInstance = true   // onConfigChange retain
+        setHasOptionsMenu(true)
+        retainInstance = true
         svm = ViewModelProviders.of(activity!!).get(SharedViewModel::class.java)
     }
 
@@ -139,17 +138,17 @@ class MakerFragment : Fragment(), WaypointsChanged {
         mBinding!!.rvWaypoints.adapter = WaypointAdapter("", "", this)
         mBinding!!.rvWaypoints.layoutManager = LinearLayoutManager(context)
 
-        mItemTouchHelper = ItemTouchHelper(
-                SimpleItemTouchHelperCallback(mBinding!!.rvWaypoints.adapter as ItemTouchHelperAdapter))
+        mItemTouchHelper = ItemTouchHelper(SimpleItemTouchHelperCallback(
+                mBinding!!.rvWaypoints.adapter as ItemTouchHelperAdapter))
         mItemTouchHelper!!.attachToRecyclerView(mBinding!!.rvWaypoints)
 
-        mBinding!!.search!!.edtFrom.setOnEditorActionListener(editor)
-        mBinding!!.search!!.edtFrom.onFocusChangeListener = focus
-        mBinding!!.search!!.edtFrom.setOnTouchListener(touch)
+        mBinding!!.edtFrom.setOnEditorActionListener(editor)
+        mBinding!!.edtFrom.onFocusChangeListener = focus
+        mBinding!!.edtFrom.setOnTouchListener(touch)
 
-        mBinding!!.search!!.edtTo.setOnEditorActionListener(editor)
-        mBinding!!.search!!.edtTo.onFocusChangeListener = focus
-        mBinding!!.search!!.edtTo.setOnTouchListener(touch)
+        mBinding!!.edtTo.setOnEditorActionListener(editor)
+        mBinding!!.edtTo.onFocusChangeListener = focus
+        mBinding!!.edtTo.setOnTouchListener(touch)
 
         mBinding!!.edtWaypoint.setOnEditorActionListener(editor)
         mBinding!!.edtWaypoint.onFocusChangeListener = focus
@@ -176,13 +175,26 @@ class MakerFragment : Fragment(), WaypointsChanged {
         subscribeUI()
     }
 
-    override fun onListchanged(addr: ArrayList<String>, poss: ArrayList<String>) {
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        super.onOptionsItemSelected(item)
+        when (item.itemId) {
+            R.id.opt_play_stop -> {
+                if (TravelService.travelling)
+                    enable(false)
+                else
+                    enable(true)
+            }
+        }
+        return false
+    }
+
+    override fun onListchanged(listaddr: ArrayList<String>, listposs: ArrayList<String>) {
         travel.value = null // reset travel as input has changed
         var straddr = ""
         var strposs = ""
-        for (s in addr) {
+        for (s in listaddr) {
             straddr += "$s#"
-            strposs += "${poss[addr.indexOf(s)]}#"
+            strposs += "${listposs[listaddr.indexOf(s)]}#"
         }
         svm!!.travelSet.value!!.waypointAddress = straddr
         svm!!.travelSet.value!!.waypointPosition = strposs
@@ -196,34 +208,37 @@ class MakerFragment : Fragment(), WaypointsChanged {
                 mBinding!!.travelSet = it
                 (mBinding!!.rvWaypoints.adapter as WaypointAdapter).setList(it.waypointAddress, it.waypointPosition)
                 edtWaypoint.setText("")
-                activity!!.invalidateOptionsMenu()
             }
         })
 
-        travel.observe(this, Observer { _ ->
-            activity!!.invalidateOptionsMenu()
-        })
     }
 
     // UI locker
-    internal fun enable(b: Boolean) {
-        edtFrom?.isEnabled = b
-        edtTo?.isEnabled = b
-        edtWaypoint?.isEnabled = b
-        rvWaypoints?.isEnabled = b
-        search_swap?.isEnabled = b
-        spinnerMode?.isEnabled = b
-        edtWaypoint?.visibility = if (!b) View.GONE else View.VISIBLE
+    private fun enable(b: Boolean) {
+        edtFrom!!.isEnabled = b
+        edtTo!!.isEnabled = b
+        edtWaypoint!!.isEnabled = b
+
+        if (b) {
+            mItemTouchHelper!!.attachToRecyclerView(mBinding!!.rvWaypoints)
+        } else {
+            mItemTouchHelper!!.attachToRecyclerView(null)
+        }
+
+        search_swap!!.isEnabled = b
+        spinnerMode!!.isEnabled = b
+        edtWaypoint!!.visibility = if (!b) View.GONE else View.VISIBLE
     }
 
     private fun setPoint(i: Int, s: String) {
-        if ((activity!!.application as BaseApp).isNetworkAvailable){
+        if ((activity!!.application as BaseApp).isNetworkAvailable) {
 
             val a: SharedViewModel.Companion.PointType? = when (i) {
                 R.id.edtFrom -> SharedViewModel.Companion.PointType.ORIGIN
                 R.id.edtTo -> SharedViewModel.Companion.PointType.DESTINATION
                 R.id.edtWaypoint -> SharedViewModel.Companion.PointType.WAYPOINT
-                else -> null }
+                else -> null
+            }
 
             if (null != a)
                 svm!!.setPoint(a, s)
@@ -272,9 +287,11 @@ class MakerFragment : Fragment(), WaypointsChanged {
             } else {
                 mViewHolder = view.tag as ViewHolder
             }
-            mViewHolder!!.img.background = context.resources.getDrawable(
-                    context.resources.getIdentifier(this.list[position],
-                            "drawable", context.packageName))
+            mViewHolder!!.img.background = ContextCompat.getDrawable(context,
+                    context.resources.getIdentifier(
+                            this.list[position],
+                            "drawable",
+                            context.packageName))
             return view!!
         }
 
