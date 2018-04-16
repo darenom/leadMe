@@ -18,6 +18,7 @@ class TTS(var context: Context) :
     private val cTAG = "TTS"
     private var mTts: TextToSpeech? = null
     private val ttsSaid = object : UtteranceProgressListener() {
+        @Suppress("OverridingDeprecatedMember")
         override fun onError(utteranceId: String?) {
             Log.e(cTAG, "error")
         }
@@ -70,6 +71,7 @@ class TTS(var context: Context) :
 
     }
 
+    @Suppress("DEPRECATION")
     fun say(toSay: String, uId: String): Boolean {
         return when {
             null == mTts ->

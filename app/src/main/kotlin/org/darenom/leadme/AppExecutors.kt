@@ -1,7 +1,6 @@
 package org.darenom.leadme
 
 import android.os.Handler
-import android.support.annotation.NonNull
 import android.os.Looper
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors

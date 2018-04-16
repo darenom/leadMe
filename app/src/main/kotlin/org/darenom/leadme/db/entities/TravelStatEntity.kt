@@ -20,9 +20,9 @@ data class TravelStatEntity(
         @ColumnInfo
         var iter: Int = 1,
         @ColumnInfo
-        override var time_start: String = "",
+        override var timestart: String = "",
         @ColumnInfo
-        override var time_end: String = "",
+        override var timeend: String = "",
         @ColumnInfo
         override var timed: String = "",
         @ColumnInfo
@@ -37,14 +37,5 @@ data class TravelStatEntity(
     var id: Int = 0
 
     @Ignore
-    constructor() : this(
-            BuildConfig.TMP_NAME,
-            1,
-            "",
-            "",
-            "",
-            "",
-            ""
-    )
-
+    constructor() : this(BuildConfig.TMP_NAME, 1, "","","","","")
 }

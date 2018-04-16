@@ -19,14 +19,14 @@ class Splash : Activity() {
     override fun onCreate(@Nullable savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_splash)
-        RunAnimation()
+        runAnimation()
         Handler().postDelayed({
             startActivity(Intent(this@Splash, TravelActivity::class.java))
             finish()
         }, 3000)
     }
 
-    private fun RunAnimation() {
+    private fun runAnimation() {
         val a = AnimationUtils.loadAnimation(this@Splash, R.anim.scale)
         a.reset()
         text.clearAnimation()

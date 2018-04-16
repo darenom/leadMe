@@ -79,6 +79,6 @@ class SimpleItemTouchHelperCallback(private val mAdapter: ItemTouchHelperAdapter
 
     companion object {
 
-        val ALPHA_FULL = 1.0f
+        const val ALPHA_FULL = 1.0f
     }
 }

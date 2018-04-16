@@ -5,24 +5,16 @@ import android.arch.lifecycle.ViewModelProviders
 import android.databinding.DataBindingUtil
 import android.os.Bundle
 import android.support.v4.app.Fragment
+import android.support.v4.content.ContextCompat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Adapter
 import android.widget.ArrayAdapter
 import kotlinx.android.synthetic.main.fragment_travelset.*
-import kotlinx.android.synthetic.main.fragment_travelset.view.*
 import org.darenom.leadme.R
 import org.darenom.leadme.databinding.FragmentTravelsetBinding
 import org.darenom.leadme.db.entities.TravelSetEntity
-import org.darenom.leadme.db.model.TravelSet
-import org.darenom.leadme.db.model.TravelStat
-import org.darenom.leadme.ui.adapter.TravelStatAdapter
-import org.darenom.leadme.ui.callback.TravelStatClickCallback
 import org.darenom.leadme.ui.viewmodel.TravelSetViewModel
-import android.widget.AdapterView
-
-
 
 
 /**
@@ -50,10 +42,12 @@ class TravelSetFragment : Fragment() {
         model.observableTravelSet.observe(this, Observer<TravelSetEntity> { it ->
             if (null != it) {
                 mBinding!!.travelSet = it
-                mBinding!!.imgMode = context!!.resources.getDrawable(
-                        context!!.resources.getIdentifier(context!!.resources.getStringArray(R.array.travel_mode_drw)[it.mode],
-                                "drawable", context!!.packageName))
-                if (it.max>0) {
+                mBinding!!.imgMode = ContextCompat.getDrawable(context!!,
+                        context!!.resources.getIdentifier(
+                                context!!.resources.getStringArray(R.array.travel_mode_drw)[it.mode],
+                                "drawable",
+                                context!!.packageName))
+                if (it.max > 0) {
                     spinnerMax.visibility = View.VISIBLE
                     val sRouteSelectorAdapter = ArrayAdapter(
                             context,

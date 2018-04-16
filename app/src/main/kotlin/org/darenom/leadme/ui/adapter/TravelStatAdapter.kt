@@ -69,5 +69,5 @@ class TravelStatAdapter(private val mTravelStatClickCallback: TravelStatClickCal
         return if (mTravelStatList == null) 0 else mTravelStatList!!.size
     }
 
-    class CommentViewHolder(val binding: ItemTravelstatBinding) : RecyclerView.ViewHolder(binding.getRoot())
+    class CommentViewHolder(val binding: ItemTravelstatBinding) : RecyclerView.ViewHolder(binding.root)
 }

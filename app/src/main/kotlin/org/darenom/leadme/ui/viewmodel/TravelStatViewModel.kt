@@ -25,6 +25,7 @@ class TravelStatViewModel(application: Application, database: AppDatabase, name:
     class Factory(private val mApplication: Application, private val name: String) : ViewModelProvider.NewInstanceFactory() {
 
         private val mRepository: AppDatabase = (mApplication as BaseApp).database
+        @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             return TravelStatViewModel(mApplication, mRepository, name) as T
         }

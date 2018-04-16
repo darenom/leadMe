@@ -10,7 +10,7 @@ import android.graphics.Bitmap
 import android.location.Address
 import android.location.Geocoder
 import android.util.Log
-import com.google.gson.*
+import com.google.gson.Gson
 import com.google.maps.model.LatLng
 import org.darenom.leadme.AppExecutors
 import org.darenom.leadme.BaseApp
@@ -20,7 +20,6 @@ import org.darenom.leadme.db.entities.TravelSetEntity
 import org.darenom.leadme.model.Travel
 import org.darenom.leadme.service.TravelService.Companion.travel
 import java.io.*
-import java.lang.reflect.Type
 import java.nio.charset.StandardCharsets
 import java.util.*
 
@@ -253,7 +252,7 @@ class SharedViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     // handling saving
-    fun okSave(name: String){
+    fun okSave(name: String) {
         travel.value!!.name = name
         write(travel.value!!)             // save named travel
 
@@ -269,7 +268,7 @@ class SharedViewModel(app: Application) : AndroidViewModel(app) {
         this.name.value = name                 // triggers loading and populate
     }
 
-    fun cancelSave(){
+    fun cancelSave() {
         wipe(BuildConfig.TMP_NAME)
         travelSet.value!!.max = 0
     }
@@ -288,7 +287,7 @@ class SharedViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    fun records(name: String) {
+    private fun records(name: String) {
         executors!!.diskIO().execute {
             database!!.travelStampDao().updateSet(name)
         }
@@ -441,6 +440,7 @@ class SharedViewModel(app: Application) : AndroidViewModel(app) {
 
     companion object {
         enum class PointType { ORIGIN, DESTINATION, WAYPOINT }
+
         const val emptyLatLng = "0.0/0.0"
         private const val wayMax = 17
         const val OPTIONS_COMPASS_KEY = "OptionCompassKey"

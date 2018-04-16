@@ -4,7 +4,6 @@ import android.arch.persistence.room.ColumnInfo
 import android.arch.persistence.room.Entity
 import android.arch.persistence.room.Ignore
 import android.arch.persistence.room.PrimaryKey
-import android.support.annotation.NonNull
 import org.darenom.leadme.BuildConfig
 import org.darenom.leadme.db.model.TravelSet
 
@@ -41,7 +40,8 @@ data class TravelSetEntity(
 
 ) : TravelSet {
 
-    @Ignore constructor() : this(
+    @Ignore
+    constructor() : this(
             BuildConfig.TMP_NAME,
             "",
             "",

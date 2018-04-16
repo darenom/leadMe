@@ -30,7 +30,7 @@ import android.arch.persistence.room.migration.Migration
 
 
 
-@Database(entities = arrayOf(TravelSetEntity::class, TravelStatEntity::class, TravelStampEntity::class), version = 2)
+@Database(entities = [(TravelSetEntity::class), (TravelStatEntity::class), (TravelStampEntity::class)], version = 2)
 @TypeConverters(DateConverter::class)
 abstract class AppDatabase : RoomDatabase() {
 
@@ -78,11 +78,6 @@ abstract class AppDatabase : RoomDatabase() {
             return sInstance!!
         }
 
-        /**
-         * Build the database. [Builder.build] only sets up the database configuration and
-         * creates a new instance of the database.
-         * The SQLite database is only created when it's accessed for the first time.
-         */
         private fun buildDatabase(appContext: Context,
                                   executors: AppExecutors): AppDatabase {
             return Room.databaseBuilder(appContext, AppDatabase::class.java, DATABASE_NAME)
@@ -103,7 +98,7 @@ abstract class AppDatabase : RoomDatabase() {
                     }).build()
         }
 
-        val MIGRATION_1_2: Migration = object : Migration(1, 2) {
+        private val MIGRATION_1_2: Migration = object : Migration(1, 2) {
             override fun migrate(database: SupportSQLiteDatabase) {
                 database.execSQL("ALTER TABLE TravelSetEntity ADD COLUMN distance TEXT NOT NULL DEFAULT ''")
                 database.execSQL("ALTER TABLE TravelSetEntity ADD COLUMN estimatedTime TEXT NOT NULL DEFAULT ''")

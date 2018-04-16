@@ -16,7 +16,7 @@ object DateConverter {
 
     @TypeConverter
     fun toTimestamp(date: Date?): Long? {
-        return (if (date == null) null else date.time)!!.toLong()
+        return (date?.time)!!.toLong()
     }
 
     fun compoundDuration(n: Int): String {

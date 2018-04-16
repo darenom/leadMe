@@ -7,7 +7,7 @@
 
         <variable
             name="mSwitch"
-            type="Boolean" />
+            type="boolean" />
 
         <variable
             name="imgMode"
@@ -120,7 +120,7 @@
             android:layout_centerInParent="true">
             <!-- to map -->
             <ImageButton
-                visibleGone="@{safeUnbox(mSwitch)}"
+                visibleGone="@{mSwitch}"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
@@ -131,7 +131,7 @@
                 tools:ignore="ContentDescription" />
             <!-- info travel mode -->
             <LinearLayout
-                visibleGone="@{safeUnbox(!mSwitch)}"
+                visibleGone="@{!mSwitch}"
                 android:orientation="vertical"
                 android:layout_centerHorizontal="true"
                 android:layout_width="wrap_content"

@@ -38,16 +38,5 @@ data class TravelStampEntity(
     var id: Int = 0
 
     @Ignore
-    constructor() : this(
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null
-    )
+    constructor() : this(null,null,null,null,null,null,null,null,null)
 }

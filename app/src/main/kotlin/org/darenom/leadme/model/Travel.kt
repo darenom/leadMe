@@ -1,13 +1,12 @@
 package org.darenom.leadme.model
 
 import android.location.Location
+import android.os.Build
 import android.text.Html
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
-import com.google.maps.model.DirectionsLeg
 import com.google.maps.model.DirectionsRoute
-import com.google.maps.model.DirectionsStep
 import org.darenom.leadme.BuildConfig
 
 /**
@@ -39,7 +38,8 @@ class Travel {
     var lines: ArrayList<String>? = null
 
     // exclude from Gson
-    @Transient var markerList = ArrayList<MarkerOptions>()
+    @Transient
+    var markerList = ArrayList<MarkerOptions>()
 
     init {
         this.points = ArrayList()
@@ -49,27 +49,32 @@ class Travel {
         this.lines = ArrayList()
     }
 
-    /**
-     * GGAPI DirectionsRoute to Travel
-     */
+    @Suppress("DEPRECATION")
     fun transform(route: DirectionsRoute): Travel {
-
         route.legs.forEach {
             it.steps.forEachIndexed { index, s ->
-                when (index){
+                when (index) {
                     it.steps.size - 1 -> {
                         points?.add(LatLng(s.startLocation.lat, s.startLocation.lng))
                         distances?.add(s.distance.inMeters)
                         durations?.add(s.duration.inSeconds)
                         lines?.add(s.polyline.encodedPath)
-                        infos?.add(Html.fromHtml(s.htmlInstructions).toString())
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                            infos?.add(Html.fromHtml(s.htmlInstructions, Html.FROM_HTML_MODE_COMPACT).toString())
+                        } else {
+                            infos?.add(Html.fromHtml(s.htmlInstructions).toString())
+                        }
                     }
                     else -> {
                         points?.add(LatLng(s.startLocation.lat, s.startLocation.lng))
                         distances?.add(s.distance.inMeters)
                         durations?.add(s.duration.inSeconds)
                         lines?.add(s.polyline.encodedPath)
-                        infos?.add(Html.fromHtml(s.htmlInstructions).toString())
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                            infos?.add(Html.fromHtml(s.htmlInstructions, Html.FROM_HTML_MODE_COMPACT).toString())
+                        } else {
+                            infos?.add(Html.fromHtml(s.htmlInstructions).toString())
+                        }
                     }
                 }
             }
@@ -81,10 +86,10 @@ class Travel {
         lines?.add("")
         points?.add(LatLng(
                 route.legs[route.legs.size - 1]
-                        .steps[route.legs[route.legs.size - 1].steps.size -1]
+                        .steps[route.legs[route.legs.size - 1].steps.size - 1]
                         .endLocation.lat,
                 route.legs[route.legs.size - 1]
-                        .steps[route.legs[route.legs.size - 1].steps.size -1]
+                        .steps[route.legs[route.legs.size - 1].steps.size - 1]
                         .endLocation.lng))
 
         computeDists()

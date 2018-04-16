@@ -49,6 +49,7 @@ class WaypointAdapter(waypointsaddr: String, waypointsposs: String, val callback
         }
     }
 
+    @Suppress("DEPRECATION")
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): WaypointViewHolder {
         val binding = DataBindingUtil.inflate<ViewholderWaypointBinding>(
                 LayoutInflater.from(parent.context), R.layout.viewholder_waypoint, parent, false)

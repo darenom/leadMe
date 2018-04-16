@@ -4,7 +4,6 @@
     tools:context=".TravelActivity">
 
     <data>
-
         <import type="android.view.View" />
 
         <variable

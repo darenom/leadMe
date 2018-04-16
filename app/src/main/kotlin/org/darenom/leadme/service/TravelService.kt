@@ -8,19 +8,13 @@ import android.hardware.Sensor
 import android.hardware.SensorManager
 import android.location.Location
 import android.location.LocationListener
-import android.location.LocationManager
 import android.location.LocationProvider
 import android.os.Binder
 import android.os.Bundle
 import android.os.Handler
 import android.os.IBinder
-import android.support.annotation.Nullable
 import android.support.v4.content.LocalBroadcastManager
 import android.util.Log
-import android.widget.Toast
-import com.google.android.gms.common.ConnectionResult
-import com.google.android.gms.common.api.GoogleApiClient
-import com.google.android.gms.location.LocationServices
 import org.darenom.leadme.BaseApp
 import org.darenom.leadme.BuildConfig
 import org.darenom.leadme.R
@@ -107,7 +101,7 @@ class TravelService : Service(),
     //endregion
 
     // region Location
-    fun locate(b: Boolean) {
+    private fun locate(b: Boolean) {
         if (b)
             travelLocationManager?.locate(true, false)
         else

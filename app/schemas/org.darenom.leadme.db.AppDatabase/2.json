@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 2,
-    "identityHash": "b7afcd63fa4070701cf1a351f9fe3974",
+    "identityHash": "e7bf381fb4b071bbd1b692bd5916a554",
     "entities": [
       {
         "tableName": "TravelSetEntity",
@@ -86,7 +86,7 @@
       },
       {
         "tableName": "TravelStatEntity",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `iter` INTEGER NOT NULL, `time_start` TEXT NOT NULL, `time_end` TEXT NOT NULL, `timed` TEXT NOT NULL, `distance` TEXT NOT NULL, `avgSpeed` TEXT NOT NULL, FOREIGN KEY(`name`) REFERENCES `TravelSetEntity`(`name`) ON UPDATE NO ACTION ON DELETE NO ACTION )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `iter` INTEGER NOT NULL, `timestart` TEXT NOT NULL, `timeend` TEXT NOT NULL, `timed` TEXT NOT NULL, `distance` TEXT NOT NULL, `avgSpeed` TEXT NOT NULL, FOREIGN KEY(`name`) REFERENCES `TravelSetEntity`(`name`) ON UPDATE NO ACTION ON DELETE NO ACTION )",
         "fields": [
           {
             "fieldPath": "id",
@@ -107,14 +107,14 @@
             "notNull": true
           },
           {
-            "fieldPath": "time_start",
-            "columnName": "time_start",
+            "fieldPath": "timestart",
+            "columnName": "timestart",
             "affinity": "TEXT",
             "notNull": true
           },
           {
-            "fieldPath": "time_end",
-            "columnName": "time_end",
+            "fieldPath": "timeend",
+            "columnName": "timeend",
             "affinity": "TEXT",
             "notNull": true
           },
@@ -273,7 +273,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"b7afcd63fa4070701cf1a351f9fe3974\")"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"e7bf381fb4b071bbd1b692bd5916a554\")"
     ]
   }
 }

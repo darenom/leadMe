@@ -12,7 +12,9 @@ import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
-import android.view.*
+import android.view.Menu
+import android.view.MenuItem
+import android.view.View
 import android.widget.Toast
 import com.google.maps.DirectionsApi
 import com.google.maps.GeoApiContext
@@ -23,9 +25,7 @@ import com.google.maps.model.TravelMode
 import com.sothree.slidinguppanel.SlidingUpPanelLayout
 import kotlinx.android.synthetic.main.activity_travel.*
 import kotlinx.android.synthetic.main.fragment_panel.*
-
 import org.darenom.leadme.db.DateConverter
-import org.darenom.leadme.db.entities.TravelSetEntity
 import org.darenom.leadme.model.Travel
 import org.darenom.leadme.service.TravelService
 import org.darenom.leadme.service.TravelService.Companion.travel
@@ -46,7 +46,7 @@ import java.util.*
  * (still, infos about the travel remains as temporary)
  */
 
-class TravelActivity : AppCompatActivity(), PendingResult.Callback<DirectionsResult>, SaveTravelDialog.SaveTravelDialogListener  {
+class TravelActivity : AppCompatActivity(), PendingResult.Callback<DirectionsResult>, SaveTravelDialog.SaveTravelDialogListener {
 
     companion object {
         const val CHECK_TTS_ACCESS = 40
@@ -251,7 +251,7 @@ class TravelActivity : AppCompatActivity(), PendingResult.Callback<DirectionsRes
 
     // todo async task
     override fun onKeyListener(name: String) {
-       svm!!.okSave(name)
+        svm!!.okSave(name)
     }
 
     // check voice availability
@@ -352,17 +352,17 @@ class TravelActivity : AppCompatActivity(), PendingResult.Callback<DirectionsRes
     }
 
     fun swapFromTo(v: View) {
+        if (v.id == R.id.search_swap) {
+            val tmpAd = svm!!.travelSet.value!!.originAddress
+            val tmpPo = svm!!.travelSet.value!!.originPosition
 
-        val tmpAd = svm!!.travelSet.value!!.originAddress
-        val tmpPo = svm!!.travelSet.value!!.originPosition
+            svm!!.travelSet.value!!.originAddress = svm!!.travelSet.value!!.destinationAddress
+            svm!!.travelSet.value!!.originPosition = svm!!.travelSet.value!!.destinationPosition
 
-        svm!!.travelSet.value!!.originAddress = svm!!.travelSet.value!!.destinationAddress
-        svm!!.travelSet.value!!.originPosition = svm!!.travelSet.value!!.destinationPosition
+            svm!!.travelSet.value!!.destinationAddress = tmpAd
+            svm!!.travelSet.value!!.destinationPosition = tmpPo
 
-        svm!!.travelSet.value!!.destinationAddress = tmpAd
-        svm!!.travelSet.value!!.destinationPosition = tmpPo
-
-        svm!!.update(svm!!.travelSet.value!!)
-
+            svm!!.update(svm!!.travelSet.value!!)
+        }
     }
 }

@@ -24,14 +24,14 @@ class TravelViewCompass @JvmOverloads constructor(
     // set compass angle and levels
     private fun setCompassOrientation(vararg orientation: Float) {
         // plan level
-        val f_hori = Math.round(Math.toDegrees(orientation[2].toDouble())).toFloat()
-        if (f_hori < 90 && f_hori > -90) {
-            hori.progress = Math.round(f_hori + 50)
+        val h = Math.round(Math.toDegrees(orientation[2].toDouble())).toFloat()
+        if (h < 90 && h > -90) {
+            hori.progress = Math.round(h + 50)
         }
         // plan level
-        val f_vert = Math.round(Math.toDegrees(orientation[1].toDouble())).toFloat()
-        if (f_vert < 90 && f_vert > -90) {
-            vert.progress = Math.round(f_vert + 50)
+        val v = Math.round(Math.toDegrees(orientation[1].toDouble())).toFloat()
+        if (v < 90 && v > -90) {
+            vert.progress = Math.round(v + 50)
         }
 
         // image angle to rotate to
