@@ -42,14 +42,14 @@
             android:name="org.darenom.leadme.ui.fragment.TravelMapFragment"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:gravity="center" />
+            android:gravity="top" />
 
         <fragment
             android:id="@+id/maker"
-            android:name="org.darenom.leadme.ui.fragment.TravelMakerFragment"
+            android:name="org.darenom.leadme.ui.fragment.PanelFragment"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:gravity="center" />
+            android:gravity="bottom" />
     </com.sothree.slidinguppanel.SlidingUpPanelLayout>
 
 </RelativeLayout>
