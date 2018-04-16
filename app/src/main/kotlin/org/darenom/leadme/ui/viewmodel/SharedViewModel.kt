@@ -100,14 +100,15 @@ class SharedViewModel(app: Application) : AndroidViewModel(app) {
     // reset to empty
     fun clear() {
 
-        if (travelSet.value!!.name.contentEquals(BuildConfig.TMP_NAME))
-            delete(BuildConfig.TMP_NAME)
-
         currentMax = 0
-        travel.value = null
-        travelSet.value = TravelSetEntity()
-        update(travelSet.value!!)
-        name.value = BuildConfig.TMP_NAME
+        if (travelSet.value!!.name.contentEquals(BuildConfig.TMP_NAME)) {
+            delete(BuildConfig.TMP_NAME)
+            travel.value = null
+            travelSet.value = TravelSetEntity()
+            update(travelSet.value!!)
+        } else
+            name.value = BuildConfig.TMP_NAME
+
     }
 
     // travelSet cursor

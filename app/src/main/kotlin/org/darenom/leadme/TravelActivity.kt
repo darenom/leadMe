@@ -84,10 +84,6 @@ class TravelActivity : AppCompatActivity(), PendingResult.Callback<DirectionsRes
         svm!!.name.observe(this, Observer { it ->
             if (null != it) {
 
-                // todo async task load data
-                svm!!.read(it) // set Travel
-                svm!!.monitor(it) // set TravelSet
-
                 // set title
                 if (it.contentEquals(BuildConfig.TMP_NAME))
                     supportActionBar?.setTitle(R.string.app_name)
@@ -97,6 +93,10 @@ class TravelActivity : AppCompatActivity(), PendingResult.Callback<DirectionsRes
                 // reset navigation to map
                 bottombar.selectedItemId = R.id.panel_maker
                 sliding_panel.panelState = SlidingUpPanelLayout.PanelState.COLLAPSED
+
+                // todo async task load data
+                svm!!.read(it) // set Travel
+                svm!!.monitor(it) // set TravelSet
 
             }
         })
@@ -256,12 +256,13 @@ class TravelActivity : AppCompatActivity(), PendingResult.Callback<DirectionsRes
         svm!!.write(travel.value!!)             // save named travel
 
         svm!!.travelSet.value!!.name = name
-
-        svm!!.update(TravelSetEntity())         // reset tmp
         svm!!.update(svm!!.travelSet.value!!)   // save named travelset
         svm!!.records(name)                     // move tmp to named
 
         svm!!.delete(BuildConfig.TMP_NAME)      // delete tmp file
+
+        svm!!.travelSet.value = TravelSetEntity() // reset tmp
+        svm!!.update(svm!!.travelSet.value!!)   // save named travelset
 
         svm!!.name.value = name                 // switch monitoring to name
     }
