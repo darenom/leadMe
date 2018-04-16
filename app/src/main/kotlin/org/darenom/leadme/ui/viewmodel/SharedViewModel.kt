@@ -252,15 +252,37 @@ class SharedViewModel(app: Application) : AndroidViewModel(app) {
         update(travelSet.value!!)
     }
 
+    // handling saving
+    fun okSave(name: String){
+        travel.value!!.name = name
+        write(travel.value!!)             // save named travel
+
+        travelSet.value!!.name = name
+        update(travelSet.value!!)   // save named travelset
+        records(name)                     // move tmp to named
+
+        delete(BuildConfig.TMP_NAME)      // delete tmp file
+
+        travelSet.value = TravelSetEntity() // reset tmp
+        update(travelSet.value!!)   // save named travelset
+
+        this.name.value = name                 // triggers loading and populate
+    }
+
+    fun cancelSave(){
+        wipe(BuildConfig.TMP_NAME)
+        travelSet.value!!.max = 0
+    }
+
     // region db
-    fun update(travelSetEntity: TravelSetEntity) {
+    internal fun update(travelSetEntity: TravelSetEntity) {
         executors!!.diskIO().execute {
             database!!.travelSetDao().insert(travelSetEntity)
         }
 
     }
 
-    fun wipe(name: String) {
+    private fun wipe(name: String) {
         executors!!.diskIO().execute {
             database!!.travelStampDao().wipe(name)
         }

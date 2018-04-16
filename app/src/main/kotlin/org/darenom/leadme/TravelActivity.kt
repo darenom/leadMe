@@ -246,25 +246,12 @@ class TravelActivity : AppCompatActivity(), PendingResult.Callback<DirectionsRes
     }
 
     override fun onCancel() {
-        svm!!.wipe(BuildConfig.TMP_NAME)
-        svm!!.travelSet.value!!.max = 0
+        svm!!.cancelSave()
     }
 
     // todo async task
     override fun onKeyListener(name: String) {
-        travel.value!!.name = name
-        svm!!.write(travel.value!!)             // save named travel
-
-        svm!!.travelSet.value!!.name = name
-        svm!!.update(svm!!.travelSet.value!!)   // save named travelset
-        svm!!.records(name)                     // move tmp to named
-
-        svm!!.delete(BuildConfig.TMP_NAME)      // delete tmp file
-
-        svm!!.travelSet.value = TravelSetEntity() // reset tmp
-        svm!!.update(svm!!.travelSet.value!!)   // save named travelset
-
-        svm!!.name.value = name                 // switch monitoring to name
+       svm!!.okSave(name)
     }
 
     // check voice availability

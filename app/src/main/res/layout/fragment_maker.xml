@@ -22,60 +22,19 @@
         android:background="@color/colorPrimary"
         android:padding="@dimen/appbar_padding_top">
 
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/search"
-            android:background="@color/colorPrimary">
-
-            <EditText
-                android:id="@+id/edtWaypoint"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:hint="@string/hint_waypoint"
-                android:layout_alignParentTop="true"
-                android:layout_marginStart="@dimen/spacer"
-                android:drawableEnd="@drawable/ic_opt_pos"
-                android:enabled="@{enabled}"
-                android:inputType="textPostalAddress" />
-
-            <Spinner
-                android:id="@+id/spinnerMode"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentStart="true"
-                android:layout_alignParentTop="true"
-                android:layout_marginTop="@dimen/appbar_padding_top"
-                android:enabled="@{enabled}"
-                android:focusable="true"
-                android:selectedItemPosition="@{travelSet.mode}" />
-
-            <android.support.v7.widget.RecyclerView
-                android:id="@+id/rvWaypoints"
-                android:scrollbars="vertical"
-                android:scrollbarAlwaysDrawVerticalTrack="true"
-                android:fadeScrollbars="false"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:padding="@dimen/appbar_padding_top"
-                android:layout_below="@+id/edtWaypoint"
-                android:focusableInTouchMode="true" />
-
-        </RelativeLayout>
 
         <RelativeLayout
-            android:id="@+id/search"
+
             android:layout_alignParentTop="true"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@color/colorPrimary">
 
             <LinearLayout
+                android:id="@+id/search"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_centerInParent="true"
-                android:layout_toEndOf="@+id/search_swap"
+                android:layout_toStartOf="@+id/spinnerMode"
                 android:orientation="vertical">
 
                 <EditText
@@ -83,7 +42,6 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="@string/hint_origin"
-                    android:drawableEnd="@drawable/ic_opt_pos"
                     android:text="@{travelSet.originAddress}"
                     android:enabled="@{enabled}"
                     android:inputType="textPostalAddress" />
@@ -93,24 +51,56 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="@string/hint_destination"
-                    android:drawableEnd="@drawable/ic_opt_pos"
                     android:text="@{travelSet.destinationAddress}"
+                    android:enabled="@{enabled}"
+                    android:inputType="textPostalAddress" />
+
+                <EditText
+                    android:id="@+id/edtWaypoint"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:hint="@string/hint_waypoint"
+                    android:drawableStart="@drawable/ic_opt_pos"
                     android:enabled="@{enabled}"
                     android:inputType="textPostalAddress" />
 
             </LinearLayout>
 
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/rvWaypoints"
+                android:layout_below="@+id/search"
+                android:scrollbars="vertical"
+                android:scrollbarAlwaysDrawVerticalTrack="true"
+                android:fadeScrollbars="false"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="@dimen/appbar_padding_top"
+                android:focusableInTouchMode="true" />
+
             <ImageButton
                 android:id="@+id/search_swap"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentStart="true"
-                android:layout_centerInParent="true"
+                android:layout_alignParentEnd="true"
+                android:layout_marginTop="@dimen/spacer"
                 android:background="@color/colorPrimary"
                 android:onClick="swapFromTo"
                 android:enabled="@{enabled}"
                 android:src="@drawable/ic_swap_vert_black_24dp"
                 tools:ignore="ContentDescription" />
+
+            <Spinner
+                android:id="@+id/spinnerMode"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_above="@+id/rvWaypoints"
+                android:layout_alignParentEnd="true"
+                android:background="@drawable/drawable_spinner"
+                android:layout_marginBottom="@dimen/activity_vertical_margin"
+                android:enabled="@{enabled}"
+                android:focusable="true"
+                android:selectedItemPosition="@{travelSet.mode}" />
 
         </RelativeLayout>
 

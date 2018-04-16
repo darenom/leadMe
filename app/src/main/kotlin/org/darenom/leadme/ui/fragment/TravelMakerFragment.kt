@@ -49,14 +49,11 @@ class TravelMakerFragment : Fragment(), WaypointsChanged {
     }
 
     private var editor = TextView.OnEditorActionListener { v, actionId, event ->
-
         if (((event != null &&
                         (event.keyCode == KeyEvent.KEYCODE_ENTER)) ||
                         (actionId == EditorInfo.IME_ACTION_NEXT) ||
-                        (actionId == EditorInfo.IME_ACTION_DONE)))
-
-            if ((v as EditText).text.toString().isNotEmpty())
-
+                        (actionId == EditorInfo.IME_ACTION_DONE))) {
+            if ((v as EditText).text.toString().isNotEmpty()) {
                 when (v.id) {
 
                     R.id.edtFrom ->
@@ -81,38 +78,21 @@ class TravelMakerFragment : Fragment(), WaypointsChanged {
                         }
 
                 }
+            }
+        }
         false
     }
 
+    // editText drawables click handling
     private var touch = View.OnTouchListener { v, event ->
         if (event.action == MotionEvent.ACTION_UP) {
-            if (event.rawX >= v.right - (v as EditText).compoundDrawables[2].bounds.width()) {
-                if ((activity!!.application as BaseApp).travelService!!.hasPos) {
-                    if (null != TravelService.here) {
-                        when (v.id) {
-                            R.id.edtFrom -> svm!!.setLocationAs(SharedViewModel.Companion.PointType.ORIGIN,
-                                    LatLng(TravelService.here!!.latitude, TravelService.here!!.longitude))
-                            R.id.edtTo -> svm!!.setLocationAs(SharedViewModel.Companion.PointType.DESTINATION,
-                                    LatLng(TravelService.here!!.latitude, TravelService.here!!.longitude))
-                            R.id.edtWaypoint -> svm!!.setLocationAs(SharedViewModel.Companion.PointType.WAYPOINT,
-                                    LatLng(TravelService.here!!.latitude, TravelService.here!!.longitude))
-                        }
-                    } else {
-                        Toast.makeText(activity, getString(R.string.searching_loc), Toast.LENGTH_SHORT).show()
-                    }
-                } else {
-                    if (ContextCompat.checkSelfPermission(context!!,
-                                    Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED)
-                    //  missing feature
-                        startActivityForResult(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS), TravelActivity.LOCATION_SET_HERE)
-                    else
-                    // missing perm
-                        ActivityCompat.requestPermissions(activity!!,
-                                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                                TravelActivity.PERM_SET_HERE)
-                }
-                return@OnTouchListener true
+            if (event.rawX <= ((v as EditText).compoundDrawables[0].bounds.width()) * 2.5) {
+                if (v.text.isEmpty())
+                    setLocationText(v.id)
+                else
+                    clearText(v.id)
             }
+            return@OnTouchListener true
         }
         false
     }
@@ -205,6 +185,14 @@ class TravelMakerFragment : Fragment(), WaypointsChanged {
         svm!!.travelSet.observe(this, Observer { it ->
             if (null != it) {
                 mBinding!!.travelSet = it
+                if (it.originPosition.isEmpty())
+                    edtFrom.setCompoundDrawablesWithIntrinsicBounds(context!!.getDrawable(R.drawable.ic_opt_pos), null, null, null)
+                else
+                    edtFrom.setCompoundDrawablesWithIntrinsicBounds(context!!.getDrawable(R.drawable.ic_clear_cancel), null, null, null)
+                if (it.destinationPosition.isEmpty())
+                    edtTo.setCompoundDrawablesWithIntrinsicBounds(context!!.getDrawable(R.drawable.ic_opt_pos), null, null, null)
+                else
+                    edtTo.setCompoundDrawablesWithIntrinsicBounds(context!!.getDrawable(R.drawable.ic_clear_cancel), null, null, null)
                 (mBinding!!.rvWaypoints.adapter as WaypointAdapter).setList(it.waypointAddress, it.waypointPosition)
                 mBinding!!.edtWaypoint.setText("")
             }
@@ -249,6 +237,51 @@ class TravelMakerFragment : Fragment(), WaypointsChanged {
         } else
             activity!!.startActivityForResult(Intent(Settings.ACTION_WIFI_SETTINGS), TravelActivity.CHECK_NET_ACCESS)
 
+    }
+
+
+    private fun setLocationText(id: Int) {
+
+        if ((activity!!.application as BaseApp).travelService!!.hasPos) {
+            if (null != TravelService.here) {
+                when (id) {
+                    R.id.edtFrom -> svm!!.setLocationAs(SharedViewModel.Companion.PointType.ORIGIN,
+                            LatLng(TravelService.here!!.latitude, TravelService.here!!.longitude))
+                    R.id.edtTo -> svm!!.setLocationAs(SharedViewModel.Companion.PointType.DESTINATION,
+                            LatLng(TravelService.here!!.latitude, TravelService.here!!.longitude))
+                    R.id.edtWaypoint -> svm!!.setLocationAs(SharedViewModel.Companion.PointType.WAYPOINT,
+                            LatLng(TravelService.here!!.latitude, TravelService.here!!.longitude))
+                }
+            } else {
+                Toast.makeText(activity, getString(R.string.searching_loc), Toast.LENGTH_SHORT).show()
+            }
+        } else {
+            if (ContextCompat.checkSelfPermission(context!!,
+                            Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED)
+            //  missing feature
+                startActivityForResult(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS), TravelActivity.LOCATION_SET_HERE)
+            else
+            // missing perm
+                ActivityCompat.requestPermissions(activity!!,
+                        arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                        TravelActivity.PERM_SET_HERE)
+        }
+    }
+
+    private fun clearText(id: Int) {
+        when (id) {
+            R.id.edtFrom -> {
+                svm!!.travelSet.value!!.originPosition = ""
+                svm!!.travelSet.value!!.originAddress = ""
+                svm!!.update(svm!!.travelSet.value!!)
+            }
+            R.id.edtTo -> {
+                svm!!.travelSet.value!!.destinationPosition = ""
+                svm!!.travelSet.value!!.destinationAddress = ""
+                svm!!.update(svm!!.travelSet.value!!)
+            }
+            R.id.edtWaypoint -> edtWaypoint.setText("")
+        }
     }
 
     companion object {
