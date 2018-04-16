@@ -18,6 +18,10 @@
     <string name="opt_start_stop">Start / Stop travelling</string>
     <string name="opt_direction_save">Ask directions / Save travel</string>
 
+    <!-- Panel -->
+    <string name="panel_maker">Edit</string>
+    <string name="panel_list">Open / Details</string>
+
     <!-- Map -->
     <string name="cant_travel">Location must be active to start travelling</string>
     <string name="wont_travel">Need permission to start travelling</string>
@@ -77,15 +81,5 @@
         <item>ic_directions_bike_black_24dp</item>
         <item>ic_directions_transit_black_24dp</item>
     </string-array>
-
-    <string name="nav_travel">Travel</string>
-    <string name="nav_list">Open</string>
-
-    <string name="title_activity_main">MainActivity</string>
-    <string name="navigation_drawer_open">Open navigation drawer</string>
-    <string name="navigation_drawer_close">Close navigation drawer</string>
-    <string name="nav_header_title">Android Studio</string>
-    <string name="nav_header_subtitle">android.studio@android.com</string>
-    <string name="nav_header_desc">Navigation header</string>
 
 </resources>

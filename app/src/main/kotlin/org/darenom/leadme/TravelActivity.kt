@@ -1,4 +1,4 @@
-package org.darenom.leadme.ui.fragment
+package org.darenom.leadme
 
 import android.Manifest
 import android.arch.lifecycle.Observer
@@ -9,8 +9,8 @@ import android.os.Bundle
 import android.provider.Settings
 import android.speech.tts.TextToSpeech
 import android.support.v4.app.ActivityCompat
-import android.support.v4.app.Fragment
 import android.support.v4.content.ContextCompat
+import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.*
 import android.widget.Toast
@@ -20,15 +20,17 @@ import com.google.maps.PendingResult
 import com.google.maps.model.DirectionsResult
 import com.google.maps.model.LatLng
 import com.google.maps.model.TravelMode
-import org.darenom.leadme.BaseApp
-import org.darenom.leadme.BuildConfig
-import org.darenom.leadme.R
+import com.sothree.slidinguppanel.SlidingUpPanelLayout
+import kotlinx.android.synthetic.main.activity_travel.*
+import kotlinx.android.synthetic.main.fragment_panel.*
+
 import org.darenom.leadme.db.DateConverter
 import org.darenom.leadme.db.entities.TravelSetEntity
 import org.darenom.leadme.model.Travel
 import org.darenom.leadme.service.TravelService
 import org.darenom.leadme.service.TravelService.Companion.travel
 import org.darenom.leadme.ui.SaveTravelDialog
+import org.darenom.leadme.ui.fragment.TravelMapFragment
 import org.darenom.leadme.ui.viewmodel.SharedViewModel
 import java.util.*
 
@@ -44,7 +46,7 @@ import java.util.*
  * (still, infos about the travel remains as temporary)
  */
 
-class TravelFragment : Fragment(), PendingResult.Callback<DirectionsResult> {
+class TravelActivity : AppCompatActivity(), PendingResult.Callback<DirectionsResult>, SaveTravelDialog.SaveTravelDialogListener  {
 
     companion object {
         const val CHECK_TTS_ACCESS = 40
@@ -54,28 +56,18 @@ class TravelFragment : Fragment(), PendingResult.Callback<DirectionsResult> {
         const val LOCATION_START_MOTION = 103
         const val LOCATION_SET_HERE = 104
 
-        private var fragment: TravelFragment? = null
-        fun getInstance(): TravelFragment {
-            if (null == fragment) fragment = TravelFragment()
-            return fragment!!
-        }
     }
 
     private var svm: SharedViewModel? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setHasOptionsMenu(true)
-        retainInstance = true
-        svm = ViewModelProviders.of(activity!!).get(SharedViewModel::class.java)
-    }
+        setContentView(R.layout.activity_travel)
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.activity_travel, null)
-    }
+        setSupportActionBar(toolbar)
+        supportActionBar?.setDisplayShowTitleEnabled(true)
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
+        svm = ViewModelProviders.of(this).get(SharedViewModel::class.java)
         subscribeUI()
         ttsChecker()
     }
@@ -91,19 +83,32 @@ class TravelFragment : Fragment(), PendingResult.Callback<DirectionsResult> {
 
         svm!!.name.observe(this, Observer { it ->
             if (null != it) {
-                // todo async task
+
+                // todo async task load data
                 svm!!.read(it) // set Travel
                 svm!!.monitor(it) // set TravelSet
+
+                // set title
+                if (it.contentEquals(BuildConfig.TMP_NAME))
+                    supportActionBar?.setTitle(R.string.app_name)
+                else
+                    supportActionBar?.title = it
+
+                // reset navigation to map
+                bottombar.selectedItemId = R.id.panel_maker
+                sliding_panel.panelState = SlidingUpPanelLayout.PanelState.COLLAPSED
+
             }
         })
     }
 
-    override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
-        super.onCreateOptionsMenu(menu, inflater)
-        inflater!!.inflate(R.menu.menu_appbar, menu)
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        super.onCreateOptionsMenu(menu)
+        menuInflater.inflate(R.menu.menu_appbar, menu)
+        return true
     }
 
-    override fun onPrepareOptionsMenu(menu: Menu?) {
+    override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
         super.onPrepareOptionsMenu(menu)
 
         // visibility
@@ -113,7 +118,7 @@ class TravelFragment : Fragment(), PendingResult.Callback<DirectionsResult> {
         val mnuTravel = menu?.findItem(R.id.opt_play_stop)
         val mnuAskSave = menu?.findItem(R.id.opt_direction_save)
 
-        mnuCompass?.isVisible = (activity!!.application as BaseApp).travelService!!.hasCompass
+        mnuCompass?.isVisible = (application as BaseApp).travelService!!.hasCompass
 
         mnuTravel?.isVisible = travel.value != null
         if (TravelService.travelling) {
@@ -153,6 +158,7 @@ class TravelFragment : Fragment(), PendingResult.Callback<DirectionsResult> {
                     }
                 }
             }
+        return false
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -176,7 +182,7 @@ class TravelFragment : Fragment(), PendingResult.Callback<DirectionsResult> {
                 if (!item.isChecked)
                     directions()
                 else
-                    SaveTravelDialog().show(activity!!.supportFragmentManager, R.id.opt_direction_save.toString())
+                    SaveTravelDialog().show(this.supportFragmentManager, R.id.opt_direction_save.toString())
             }
         }
         return false
@@ -189,7 +195,7 @@ class TravelFragment : Fragment(), PendingResult.Callback<DirectionsResult> {
         when (requestCode) {
             CHECK_TTS_ACCESS -> {
                 if (resultCode == TextToSpeech.Engine.CHECK_VOICE_DATA_PASS) {
-                    (activity!!.application as BaseApp).travelService!!.startTTS()
+                    (this.application as BaseApp).travelService!!.startTTS()
 
                 } else {
                     val installIntent = Intent()
@@ -199,22 +205,22 @@ class TravelFragment : Fragment(), PendingResult.Callback<DirectionsResult> {
             }
 
             CHECK_NET_ACCESS -> {
-                if (!(activity!!.application as BaseApp).isNetworkAvailable) {
-                    Toast.makeText(context!!, getString(R.string.cant_net), Toast.LENGTH_SHORT).show()
+                if (!(application as BaseApp).isNetworkAvailable) {
+                    Toast.makeText(this, getString(R.string.cant_net), Toast.LENGTH_SHORT).show()
                 }
             }
 
             LOCATION_START_MOTION -> {
-                if ((activity!!.application as BaseApp).travelService!!.hasPos) {
+                if ((application as BaseApp).travelService!!.hasPos) {
                     startStopTravel()
                 } else {
-                    Toast.makeText(context!!, getString(R.string.cant_travel), Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, getString(R.string.cant_travel), Toast.LENGTH_SHORT).show()
                 }
             }
 
             LOCATION_SET_HERE -> {
-                if (!(activity!!.application as BaseApp).travelService!!.hasPos) {
-                    Toast.makeText(context!!, getString(R.string.cant_here), Toast.LENGTH_SHORT).show()
+                if (!(application as BaseApp).travelService!!.hasPos) {
+                    Toast.makeText(this, getString(R.string.cant_here), Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -226,12 +232,12 @@ class TravelFragment : Fragment(), PendingResult.Callback<DirectionsResult> {
         when (requestCode) {
             PERM_SET_HERE -> {
                 if (grantResults.isEmpty() || grantResults[0] != PackageManager.PERMISSION_GRANTED) {
-                    Toast.makeText(context!!, getString(R.string.wont_here), Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, getString(R.string.wont_here), Toast.LENGTH_SHORT).show()
                 }
             }
             PERM_START_MOTION -> {
                 if (grantResults.isEmpty() || grantResults[0] != PackageManager.PERMISSION_GRANTED) {
-                    Toast.makeText(context!!, getString(R.string.wont_travel), Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, getString(R.string.wont_travel), Toast.LENGTH_SHORT).show()
                 } else {
                     startStopTravel()
                 }
@@ -239,13 +245,13 @@ class TravelFragment : Fragment(), PendingResult.Callback<DirectionsResult> {
         }
     }
 
-    internal fun onCancel() {
+    override fun onCancel() {
         svm!!.wipe(BuildConfig.TMP_NAME)
         svm!!.travelSet.value!!.max = 0
     }
 
     // todo async task
-    internal fun onKeyListener(name: String) {
+    override fun onKeyListener(name: String) {
         travel.value!!.name = name
         svm!!.write(travel.value!!)             // save named travel
 
@@ -298,7 +304,7 @@ class TravelFragment : Fragment(), PendingResult.Callback<DirectionsResult> {
     // DirectionsAPI failure
     override fun onFailure(e: Throwable?) {
         Log.w(TravelMapFragment::class.java.simpleName, e?.message)
-        if (!(activity!!.application as BaseApp).isNetworkAvailable)
+        if (!(application as BaseApp).isNetworkAvailable)
             startActivityForResult(Intent(Settings.ACTION_WIFI_SETTINGS), CHECK_NET_ACCESS)
     }
 
@@ -306,7 +312,7 @@ class TravelFragment : Fragment(), PendingResult.Callback<DirectionsResult> {
     override fun onResult(result: DirectionsResult?) {
         if (result!!.routes.isNotEmpty()) {
 
-            (activity!!.application as BaseApp).mAppExecutors!!.diskIO().execute({
+            (application as BaseApp).mAppExecutors!!.diskIO().execute({
                 val tmpTravel = Travel().transform(result.routes[0])
                 var d = 0
                 var t = 0
@@ -315,7 +321,7 @@ class TravelFragment : Fragment(), PendingResult.Callback<DirectionsResult> {
                     t += it.duration.inSeconds.toInt()
                 }
 
-                (activity!!.application as BaseApp).mAppExecutors!!.mainThread().execute({
+                (application as BaseApp).mAppExecutors!!.mainThread().execute({
                     travel.value = tmpTravel
                     svm!!.travelSet.value!!.distance = if (d > 999) "${d / 1000} km" else "$d m"
                     svm!!.travelSet.value!!.estimatedTime = DateConverter.compoundDuration(t)
@@ -331,33 +337,33 @@ class TravelFragment : Fragment(), PendingResult.Callback<DirectionsResult> {
     internal fun startStopTravel() {
         if (!TravelService.travelling) {
             // attempt start
-            if (!(activity!!.application as BaseApp).travelService!!.startMotion(svm!!.travelSet.value!!.max + 1))
+            if (!(application as BaseApp).travelService!!.startMotion(svm!!.travelSet.value!!.max + 1))
             // check perm
-                if (ContextCompat.checkSelfPermission(context!!,
+                if (ContextCompat.checkSelfPermission(this,
                                 Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED)
                 //  missing feature
                     startActivityForResult(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS), LOCATION_START_MOTION)
                 else
                 // missing perm
-                    ActivityCompat.requestPermissions(activity!!,
+                    ActivityCompat.requestPermissions(this,
                             arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
                             PERM_START_MOTION)
         } else {
             // stop
-            (activity!!.application as BaseApp).travelService!!.stopMotion()
+            (application as BaseApp).travelService!!.stopMotion()
             svm!!.travelSet.value!!.max += 1
 
             if (svm!!.travelSet.value!!.name.contentEquals(BuildConfig.TMP_NAME))
-                SaveTravelDialog().show(activity!!.supportFragmentManager, R.string.app_name.toString())
+                SaveTravelDialog().show(supportFragmentManager, R.string.app_name.toString())
             else
                 svm!!.update(svm!!.travelSet.value!!)
 
 
         }
-        activity!!.invalidateOptionsMenu()
+        invalidateOptionsMenu()
     }
 
-    internal fun swapFromTo() {
+    fun swapFromTo(v: View) {
 
         val tmpAd = svm!!.travelSet.value!!.originAddress
         val tmpPo = svm!!.travelSet.value!!.originPosition

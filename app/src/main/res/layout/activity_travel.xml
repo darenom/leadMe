@@ -1,16 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/colorPrimary"
-    tools:context="org.darenom.leadme.ui.fragment.TravelFragment">
+
+    tools:context=".TravelActivity">
+
+    <android.support.design.widget.AppBarLayout
+            android:id="@+id/appbar"
+            android:layout_alignParentTop="true"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:theme="@style/AppTheme.AppBarOverlay">
+
+            <android.support.v7.widget.Toolbar
+                android:id="@+id/toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                android:background="?attr/colorPrimary"
+                app:popupTheme="@style/AppTheme.PopupOverlay"
+                app:title="@string/app_name">
+            </android.support.v7.widget.Toolbar>
+    </android.support.design.widget.AppBarLayout>
 
     <com.sothree.slidinguppanel.SlidingUpPanelLayout
         xmlns:sothree="http://schemas.android.com/apk/res-auto"
-        android:id="@+id/sliding_layout"
+        android:id="@+id/sliding_panel"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_marginTop="?attr/actionBarSize"
         android:gravity="bottom"
         sothree:umanoPanelHeight="68dp"
         sothree:umanoShadowHeight="4dp">
@@ -20,14 +42,14 @@
             android:name="org.darenom.leadme.ui.fragment.TravelMapFragment"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:gravity="center" />
+            android:gravity="top" />
 
         <fragment
             android:id="@+id/maker"
-            android:name="org.darenom.leadme.ui.fragment.TravelMakerFragment"
+            android:name="org.darenom.leadme.ui.fragment.PanelFragment"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:gravity="center" />
+            android:gravity="bottom" />
     </com.sothree.slidinguppanel.SlidingUpPanelLayout>
 
 </RelativeLayout>
