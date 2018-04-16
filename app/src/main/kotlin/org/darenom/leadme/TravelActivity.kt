@@ -20,7 +20,9 @@ import com.google.maps.PendingResult
 import com.google.maps.model.DirectionsResult
 import com.google.maps.model.LatLng
 import com.google.maps.model.TravelMode
+import com.sothree.slidinguppanel.SlidingUpPanelLayout
 import kotlinx.android.synthetic.main.activity_travel.*
+import kotlinx.android.synthetic.main.fragment_panel.*
 
 import org.darenom.leadme.db.DateConverter
 import org.darenom.leadme.db.entities.TravelSetEntity
@@ -70,8 +72,6 @@ class TravelActivity : AppCompatActivity(), PendingResult.Callback<DirectionsRes
         ttsChecker()
     }
 
-
-
     private fun subscribeUI() {
 
         travel.observe(this, Observer { it ->
@@ -83,9 +83,21 @@ class TravelActivity : AppCompatActivity(), PendingResult.Callback<DirectionsRes
 
         svm!!.name.observe(this, Observer { it ->
             if (null != it) {
-                // todo async task
+
+                // todo async task load data
                 svm!!.read(it) // set Travel
                 svm!!.monitor(it) // set TravelSet
+
+                // set title
+                if (it.contentEquals(BuildConfig.TMP_NAME))
+                    supportActionBar?.setTitle(R.string.app_name)
+                else
+                    supportActionBar?.title = it
+
+                // reset navigation to map
+                bottombar.selectedItemId = R.id.panel_maker
+                sliding_panel.panelState = SlidingUpPanelLayout.PanelState.COLLAPSED
+
             }
         })
     }
@@ -95,8 +107,6 @@ class TravelActivity : AppCompatActivity(), PendingResult.Callback<DirectionsRes
         menuInflater.inflate(R.menu.menu_appbar, menu)
         return true
     }
-
-
 
     override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
         super.onPrepareOptionsMenu(menu)
