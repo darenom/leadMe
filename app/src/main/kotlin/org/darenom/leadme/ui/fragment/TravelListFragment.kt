@@ -8,16 +8,14 @@ import android.databinding.DataBindingUtil
 import android.os.Bundle
 import android.support.annotation.Nullable
 import android.support.v4.app.Fragment
-import android.view.*
-import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.android.synthetic.main.activity_travel.*
-import org.darenom.leadme.BaseApp
+import android.view.LayoutInflater
+import android.view.Menu
+import android.view.View
+import android.view.ViewGroup
 import org.darenom.leadme.R
 import org.darenom.leadme.databinding.FragmentTravelsetListBinding
 import org.darenom.leadme.db.entities.TravelSetEntity
 import org.darenom.leadme.db.model.TravelSet
-import org.darenom.leadme.service.TravelService
-import org.darenom.leadme.service.TravelService.Companion.travel
 import org.darenom.leadme.ui.StatisticsActivity
 import org.darenom.leadme.ui.adapter.TravelSetAdapter
 import org.darenom.leadme.ui.callback.TravelSetClickCallback
@@ -82,7 +80,9 @@ class TravelListFragment : Fragment() {
             if (travelSetList != null) {
                 mBinding!!.isLoading = false
                 mTravelSetAdapter!!.setTravelSetList(travelSetList)
-            } else { mBinding!!.isLoading = true }
+            } else {
+                mBinding!!.isLoading = true
+            }
             mBinding!!.executePendingBindings()
         })
 

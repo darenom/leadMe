@@ -21,7 +21,7 @@ class Splash : Activity() {
         setContentView(R.layout.activity_splash)
         RunAnimation()
         Handler().postDelayed({
-            startActivity(Intent(this@Splash, MainActivity::class.java))
+            startActivity(Intent(this@Splash, TravelActivity::class.java))
             finish()
         }, 3000)
     }

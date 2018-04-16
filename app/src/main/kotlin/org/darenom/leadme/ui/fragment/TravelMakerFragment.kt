@@ -22,6 +22,7 @@ import com.google.maps.model.LatLng
 import kotlinx.android.synthetic.main.fragment_maker.*
 import org.darenom.leadme.BaseApp
 import org.darenom.leadme.R
+import org.darenom.leadme.TravelActivity
 import org.darenom.leadme.databinding.FragmentMakerBinding
 import org.darenom.leadme.service.TravelService
 import org.darenom.leadme.service.TravelService.Companion.travel
@@ -103,12 +104,12 @@ class TravelMakerFragment : Fragment(), WaypointsChanged {
                     if (ContextCompat.checkSelfPermission(context!!,
                                     Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED)
                     //  missing feature
-                        startActivityForResult(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS), TravelFragment.LOCATION_SET_HERE)
+                        startActivityForResult(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS), TravelActivity.LOCATION_SET_HERE)
                     else
                     // missing perm
                         ActivityCompat.requestPermissions(activity!!,
                                 arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                                TravelFragment.PERM_SET_HERE)
+                                TravelActivity.PERM_SET_HERE)
                 }
                 return@OnTouchListener true
             }
@@ -246,7 +247,7 @@ class TravelMakerFragment : Fragment(), WaypointsChanged {
                 svm!!.setPoint(a, s)
 
         } else
-            activity!!.startActivityForResult(Intent(Settings.ACTION_WIFI_SETTINGS), TravelFragment.CHECK_NET_ACCESS)
+            activity!!.startActivityForResult(Intent(Settings.ACTION_WIFI_SETTINGS), TravelActivity.CHECK_NET_ACCESS)
 
     }
 

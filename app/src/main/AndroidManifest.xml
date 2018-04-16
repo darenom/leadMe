@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="org.darenom.leadme">
 
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
@@ -38,17 +39,16 @@
         </activity>
 
         <activity
+            android:name=".TravelActivity"
+            android:theme="@style/AppTheme.NoActionBar" />
+
+        <activity
             android:name=".ui.StatisticsActivity"
-            android:parentActivityName=".MainActivity"
+            android:parentActivityName=".TravelActivity"
             android:theme="@style/AppTheme.NoActionBar" />
 
         <service android:name=".service.TravelService" />
 
-        <activity
-            android:name=".MainActivity"
-            android:label="@string/title_activity_main"
-            android:theme="@style/AppTheme.NoActionBar">
-        </activity>
     </application>
 
 </manifest>

@@ -25,15 +25,15 @@ import com.google.android.gms.maps.model.*
 import com.google.maps.android.PolyUtil
 import kotlinx.android.synthetic.main.layout_view_compass.*
 import org.darenom.leadme.BaseApp
-import org.darenom.leadme.MainActivity
 import org.darenom.leadme.R
+import org.darenom.leadme.TravelActivity
 import org.darenom.leadme.databinding.FragmentMapBinding
 import org.darenom.leadme.db.entities.TravelSetEntity
 import org.darenom.leadme.model.Travel
 import org.darenom.leadme.service.TravelService
 import org.darenom.leadme.service.TravelService.Companion.travel
 import org.darenom.leadme.service.TravelService.Companion.travelling
-import org.darenom.leadme.ui.fragment.TravelFragment.Companion.CHECK_NET_ACCESS
+import org.darenom.leadme.TravelActivity.Companion.CHECK_NET_ACCESS
 import org.darenom.leadme.ui.viewmodel.SharedViewModel
 import java.util.*
 
@@ -71,7 +71,7 @@ class TravelMapFragment : Fragment(), OnMapReadyCallback,
                 }
                 TravelService.ARRIVED -> {
                     if (TravelService.travelling)
-                        (activity!! as MainActivity).startStopTravel(null)
+                        (activity!! as TravelActivity).startStopTravel()
                 }
                 TravelService.MY_WAY_BACK -> {
                     mBinding?.showDirection = false
