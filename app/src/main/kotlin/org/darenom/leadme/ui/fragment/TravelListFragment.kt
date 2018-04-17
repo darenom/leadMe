@@ -8,6 +8,7 @@ import android.databinding.DataBindingUtil
 import android.os.Bundle
 import android.support.annotation.Nullable
 import android.support.v4.app.Fragment
+import android.support.v7.widget.LinearLayoutManager
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.View
@@ -54,17 +55,10 @@ class TravelListFragment : Fragment() {
         retainInstance = true   // onConfigChange retain
     }
 
-    override fun onPrepareOptionsMenu(menu: Menu?) {
-        super.onPrepareOptionsMenu(menu)
-        menu?.findItem(R.id.opt_compass)?.isVisible = false
-        menu?.findItem(R.id.opt_play_stop)?.isVisible = false
-        menu?.findItem(R.id.opt_direction_save)?.isVisible = false
-        menu?.findItem(R.id.opt_clear)?.isVisible = false
-    }
-
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         mBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_travelset_list, container, false)
         mTravelSetAdapter = TravelSetAdapter(mTravelSetClickCallback)
+        mBinding!!.travelsetList.layoutManager = LinearLayoutManager(context)
         mBinding!!.travelsetList.adapter = mTravelSetAdapter
         return mBinding!!.root
     }
@@ -85,14 +79,15 @@ class TravelListFragment : Fragment() {
             }
             mBinding!!.executePendingBindings()
         })
+    }
 
-        viewModel.name.observe(this, Observer { it ->
-            if (null != it) {
-                // todo async task
-                svm!!.read(it) // set Travel
-                svm!!.monitor(it) // set TravelSet
-            }
-        })
+
+    override fun onPrepareOptionsMenu(menu: Menu?) {
+        super.onPrepareOptionsMenu(menu)
+        menu?.findItem(R.id.opt_compass)?.isVisible = false
+        menu?.findItem(R.id.opt_play_stop)?.isVisible = false
+        menu?.findItem(R.id.opt_direction_save)?.isVisible = false
+        menu?.findItem(R.id.opt_clear)?.isVisible = false
     }
 
     companion object {
