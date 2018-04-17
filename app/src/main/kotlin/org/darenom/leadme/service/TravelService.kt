@@ -221,11 +221,11 @@ class TravelService : Service(),
     private var iter: Int? = null
     private var isFirstRound: Boolean = false
     private var oldStatus: Int = -1
+    private var tmpTs: TravelSegment? = null
 
     fun startMotion(iter: Int): Boolean {
         this.iter = iter
-        if (travelLocationManager!!.initLocation()) {
-            travelLocationManager!!.locate(true, true)
+        if (travelLocationManager!!.locate(true, true)) {
             isFirstRound = true
             travelling = true
             oldStatus = -1
@@ -257,16 +257,24 @@ class TravelService : Service(),
         val ts = TravelSegment(travel.value!!)
         val status = ts.computeSegment(location)
 
-        // draw support on map
-        if (ts.closest > 0 &&
-                ts.closest < travel.value!!.points!!.size - 1) {
+        // draw support on map if hasChanged
 
-            val intent = Intent(SEGMENT_CHANGED)
-            intent.putExtra(SEGMENT_LENGTH, ts.length)
-            intent.putParcelableArrayListExtra(SEGMENT_SIDES, ts.latlngs)
-
-            LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(intent)
+        if (ts.closest > 0 && ts.closest < travel.value!!.points!!.size - 1) {
+            if (null != tmpTs) {
+                if (!tmpTs!!.index.contentEquals(ts.index)) {
+                    val intent = Intent(SEGMENT_CHANGED)
+                    intent.putExtra(SEGMENT_LENGTH, ts.length)
+                    intent.putParcelableArrayListExtra(SEGMENT_SIDES, ts.latlngs)
+                    LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(intent)
+                }
+            } else {
+                val intent = Intent(SEGMENT_CHANGED)
+                intent.putExtra(SEGMENT_LENGTH, ts.length)
+                intent.putParcelableArrayListExtra(SEGMENT_SIDES, ts.latlngs)
+                LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(intent)
+            }
         }
+        tmpTs = ts
 
         when (status) {
             TravelSegment.ON_THE_WAY -> {
@@ -325,7 +333,6 @@ class TravelService : Service(),
         oldStatus = status
 
         if (BuildConfig.DEBUG) {
-            Log.d(cTAG, "TravelService - Computed directions : " + location.toString())
             Log.d(cTAG, String.format("Status is %d, was: %d --- say: %s, first loop: %s",
                     status, oldStatus, hasToSay.toString(), isFirstRound.toString()))
         }
