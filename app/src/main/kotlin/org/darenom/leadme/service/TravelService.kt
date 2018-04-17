@@ -125,10 +125,6 @@ class TravelService : Service(),
     override fun onProviderDisabled(s: String) {
         Log.e(cTAG, "onProviderDisabled : $s")
 
-        if (!travelLocationManager!!.gps!!.isUp && !travelLocationManager!!.net!!.isUp) {
-            stopMotion()
-        }
-
     }
 
     override fun onLocationChanged(location: Location?) {
@@ -228,7 +224,8 @@ class TravelService : Service(),
 
     fun startMotion(iter: Int): Boolean {
         this.iter = iter
-        if (travelLocationManager!!.locate(true, true)) {
+        if (travelLocationManager!!.initLocation()) {
+            travelLocationManager!!.locate(true, true)
             isFirstRound = true
             travelling = true
             oldStatus = -1
