@@ -139,7 +139,7 @@ class TravelMapFragment : Fragment(), OnMapReadyCallback,
         svm!!.optCompass.observe(this, Observer { it ->
             if (null != it) {
                 mBinding!!.showCompass = it
-                (activity!!.application as BaseApp).travelService!!.enableCompass(it, 0)
+                (activity!!.application as BaseApp).travelService?.enableCompass(it, 0)
             }
         })
 
