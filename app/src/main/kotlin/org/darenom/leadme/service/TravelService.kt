@@ -230,9 +230,6 @@ class TravelService : Service(),
             travelling = true
             oldStatus = -1
             tts?.on()
-
-            if (BuildConfig.DEBUG)
-                Log.d(cTAG, "TravelService - Start travelling")
             return true
         }
         return false
@@ -242,11 +239,10 @@ class TravelService : Service(),
         travelling = false
         isFirstRound = false
         oldStatus = -1
+        tmpTs = null
         travelLocationManager!!.locate(true, false)
         tts?.off()
         enableCompass(false, 1)
-        if (BuildConfig.DEBUG)
-            Log.d(cTAG, " TravelService - Stopped travelling")
     }
 
     private fun computeDirections(location: Location) {
@@ -258,20 +254,19 @@ class TravelService : Service(),
         val status = ts.computeSegment(location)
 
         // draw support on map if hasChanged
-
         if (ts.closest > 0 && ts.closest < travel.value!!.points!!.size - 1) {
-            if (null != tmpTs) {
+            if (null == tmpTs) {
+                val intent = Intent(SEGMENT_CHANGED)
+                intent.putExtra(SEGMENT_LENGTH, ts.length)
+                intent.putParcelableArrayListExtra(SEGMENT_SIDES, ts.latlngs)
+                LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(intent)
+            } else {
                 if (!tmpTs!!.index.contentEquals(ts.index)) {
                     val intent = Intent(SEGMENT_CHANGED)
                     intent.putExtra(SEGMENT_LENGTH, ts.length)
                     intent.putParcelableArrayListExtra(SEGMENT_SIDES, ts.latlngs)
                     LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(intent)
                 }
-            } else {
-                val intent = Intent(SEGMENT_CHANGED)
-                intent.putExtra(SEGMENT_LENGTH, ts.length)
-                intent.putParcelableArrayListExtra(SEGMENT_SIDES, ts.latlngs)
-                LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(intent)
             }
         }
         tmpTs = ts
