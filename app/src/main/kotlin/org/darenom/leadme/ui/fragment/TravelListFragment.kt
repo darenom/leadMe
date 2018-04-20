@@ -41,11 +41,11 @@ class TravelListFragment : Fragment() {
         }
 
         override fun onClick(travelSet: TravelSet) {
-            if (lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
-                val intent = Intent(activity, StatisticsActivity::class.java)
-                        .putExtra(KEY_TRAVELSET_NAME, travelSet.name)
-                startActivity(intent)
-            }
+        //   if (lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
+        //       val intent = Intent(activity, StatisticsActivity::class.java)
+        //               .putExtra(KEY_TRAVELSET_NAME, travelSet.name)
+        //       startActivity(intent)
+        //   }
         }
     }
 

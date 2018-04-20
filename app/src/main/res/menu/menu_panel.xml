@@ -5,6 +5,13 @@
         android:icon="@drawable/ic_maker"
         android:checkable="true"
         android:title="@string/panel_maker" />
+
+    <item
+        android:id="@+id/panel_stat"
+        android:icon="@drawable/ic_stat"
+        android:checkable="true"
+        android:title="@string/panel_stat" />
+
     <item
         android:id="@+id/panel_list"
         android:icon="@drawable/ic_stat"

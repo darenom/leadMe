@@ -17,7 +17,8 @@
 
     <!-- Panel -->
     <string name="panel_maker">Edit</string>
-    <string name="panel_list">Open / Details</string>
+    <string name="panel_list">Open</string>
+    <string name="panel_stat">Details</string>
 
     <!-- Map -->
     <string name="cant_travel">Location must be active to start travelling</string>

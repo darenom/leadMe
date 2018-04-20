@@ -23,8 +23,10 @@ import com.google.maps.model.DirectionsResult
 import com.google.maps.model.LatLng
 import com.google.maps.model.TravelMode
 import com.sothree.slidinguppanel.SlidingUpPanelLayout
+import kotlinx.android.synthetic.main.activity_statistics.view.*
 import kotlinx.android.synthetic.main.activity_travel.*
 import kotlinx.android.synthetic.main.fragment_panel.*
+import kotlinx.android.synthetic.main.fragment_panel.view.*
 import org.darenom.leadme.db.DateConverter
 import org.darenom.leadme.model.Travel
 import org.darenom.leadme.service.TravelService
@@ -85,18 +87,23 @@ class TravelActivity : AppCompatActivity(), PendingResult.Callback<DirectionsRes
             if (null != it) {
 
                 // set title
-                if (it.contentEquals(BuildConfig.TMP_NAME))
+                if (it.contentEquals(BuildConfig.TMP_NAME)) {
                     supportActionBar?.setTitle(R.string.app_name)
-                else
-                    supportActionBar?.title = it
+                    bottombar.selectedItemId = R.id.panel_maker
 
+                }
+                else {
+                    supportActionBar?.title = it
+                    bottombar.selectedItemId = R.id.panel_stat
+                }
                 // reset navigation to map
-                bottombar.selectedItemId = R.id.panel_maker
                 sliding_panel.panelState = SlidingUpPanelLayout.PanelState.COLLAPSED
 
                 // todo async task load data
                 svm!!.read(it) // set Travel
                 svm!!.monitor(it) // set TravelSet
+
+
 
             }
         })
