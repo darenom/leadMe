@@ -10,6 +10,7 @@ import android.provider.Settings
 import android.speech.tts.TextToSpeech
 import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
+import android.support.v4.widget.SlidingPaneLayout
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.Menu
@@ -32,6 +33,7 @@ import org.darenom.leadme.model.Travel
 import org.darenom.leadme.service.TravelService
 import org.darenom.leadme.service.TravelService.Companion.travel
 import org.darenom.leadme.ui.SaveTravelDialog
+import org.darenom.leadme.ui.fragment.PanelFragment
 import org.darenom.leadme.ui.fragment.TravelMapFragment
 import org.darenom.leadme.ui.viewmodel.SharedViewModel
 import java.util.*
@@ -62,6 +64,8 @@ class TravelActivity : AppCompatActivity(), PendingResult.Callback<DirectionsRes
 
     private var svm: SharedViewModel? = null
 
+    private lateinit var panel: PanelFragment
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_travel)
@@ -72,6 +76,8 @@ class TravelActivity : AppCompatActivity(), PendingResult.Callback<DirectionsRes
         svm = ViewModelProviders.of(this).get(SharedViewModel::class.java)
         subscribeUI()
         ttsChecker()
+        panel = supportFragmentManager.findFragmentById(R.id.fragment_panel) as PanelFragment
+
     }
 
     private fun subscribeUI() {
@@ -89,15 +95,17 @@ class TravelActivity : AppCompatActivity(), PendingResult.Callback<DirectionsRes
                 // set title
                 if (it.contentEquals(BuildConfig.TMP_NAME)) {
                     supportActionBar?.setTitle(R.string.app_name)
-                    bottombar.selectedItemId = R.id.panel_maker
+
 
                 }
                 else {
                     supportActionBar?.title = it
-                    bottombar.selectedItemId = R.id.panel_stat
+
+
                 }
                 // reset navigation to map
                 sliding_panel.panelState = SlidingUpPanelLayout.PanelState.COLLAPSED
+                fabState(0)
 
                 // todo async task load data
                 svm!!.read(it) // set Travel
@@ -107,6 +115,40 @@ class TravelActivity : AppCompatActivity(), PendingResult.Callback<DirectionsRes
 
             }
         })
+    }
+
+    private fun fabState(i: Int) {
+        when (i){
+            0 -> {
+                fab.setImageDrawable(getDrawable(R.drawable.ic_open))
+                fab.tag = "0"
+            }
+            1 -> {
+                fab.setImageDrawable(getDrawable(R.drawable.ic_maker))
+                fab.tag = "1"
+            }
+            2-> {
+                fab.setImageDrawable(getDrawable(R.drawable.ic_lock))
+                fab.tag = "2"
+            }
+        }
+    }
+
+    fun fabClick(v: View){
+        if (v.id == R.id.fab) {
+            when (v.tag){
+                0 -> {
+                    panel.setPanel(0)
+                }
+                1 -> {
+                    panel.setPanel(1)
+                }
+                2 -> {
+                    panel.setPanel(2)
+                }
+            }
+            sliding_panel.panelState = SlidingUpPanelLayout.PanelState.EXPANDED
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {

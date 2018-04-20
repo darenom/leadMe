@@ -47,17 +47,8 @@ class PanelFragment : Fragment() {
         svm = ViewModelProviders.of(activity!!).get(SharedViewModel::class.java)
         subscribeUi(svm)
 
-        viewpager.adapter = SectionsPagerAdapter(activity!!.supportFragmentManager)
+        childFragmentManager.beginTransaction().add(R.id.fragment_panel, makerFragment, "maker").commit()
 
-        bottombar.setOnNavigationItemSelectedListener({ item ->
-            item.isChecked = true
-            when (item.itemId) {
-                R.id.panel_maker -> viewpager.currentItem = 0
-                R.id.panel_stat -> viewpager.currentItem = 1
-                R.id.panel_list -> viewpager.currentItem = 2
-            }
-            false
-        })
     }
 
     private fun subscribeUi(vm: SharedViewModel) {
@@ -67,22 +58,15 @@ class PanelFragment : Fragment() {
         })
     }
 
-    inner class SectionsPagerAdapter(fm: FragmentManager) : FragmentPagerAdapter(fm) {
+    internal fun setPanel(i : Int){
+        val f = when (i){
+            1 -> {statFragment}
+            2 -> {listFragment}
+            else -> {makerFragment}
 
-        override fun getItem(position: Int): Fragment {
-            var f: Fragment? = null
-            when (position) {
-                0 -> f = makerFragment
-                1 -> f = statFragment
-                2 -> f = listFragment
-
-            }
-            return f!!
         }
-
-        override fun getCount(): Int {
-            return 3
-        }
+        childFragmentManager.beginTransaction().replace(R.id.fragment_panel, f, "maker").commit()
     }
+
 
 }
