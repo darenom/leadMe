@@ -50,7 +50,10 @@ import java.util.*
  * (still, infos about the travel remains as temporary)
  */
 
-class TravelActivity : AppCompatActivity(), PendingResult.Callback<DirectionsResult>, SaveTravelDialog.SaveTravelDialogListener {
+class TravelActivity : AppCompatActivity(),
+        PendingResult.Callback<DirectionsResult>,
+        SaveTravelDialog.SaveTravelDialogListener,
+        SlidingUpPanelLayout.PanelSlideListener {
 
     companion object {
         const val CHECK_TTS_ACCESS = 40
@@ -64,8 +67,6 @@ class TravelActivity : AppCompatActivity(), PendingResult.Callback<DirectionsRes
 
     private var svm: SharedViewModel? = null
 
-    private lateinit var panel: PanelFragment
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_travel)
@@ -74,9 +75,10 @@ class TravelActivity : AppCompatActivity(), PendingResult.Callback<DirectionsRes
         supportActionBar?.setDisplayShowTitleEnabled(true)
 
         svm = ViewModelProviders.of(this).get(SharedViewModel::class.java)
+
         subscribeUI()
         ttsChecker()
-        panel = supportFragmentManager.findFragmentById(R.id.fragment_panel) as PanelFragment
+
 
     }
 
@@ -93,19 +95,14 @@ class TravelActivity : AppCompatActivity(), PendingResult.Callback<DirectionsRes
             if (null != it) {
 
                 // set title
-                if (it.contentEquals(BuildConfig.TMP_NAME)) {
+                if (it.contentEquals(BuildConfig.TMP_NAME))
                     supportActionBar?.setTitle(R.string.app_name)
-
-
-                }
-                else {
+                else
                     supportActionBar?.title = it
 
-
-                }
                 // reset navigation to map
                 sliding_panel.panelState = SlidingUpPanelLayout.PanelState.COLLAPSED
-                fabState(0)
+                fabState(1)
 
                 // todo async task load data
                 svm!!.read(it) // set Travel
@@ -115,6 +112,30 @@ class TravelActivity : AppCompatActivity(), PendingResult.Callback<DirectionsRes
 
             }
         })
+
+        fabState(0)
+    }
+
+    override fun onPanelSlide(panel: View?, slideOffset: Float) {
+        // do nothing
+    }
+
+    override fun onPanelStateChanged(panel: View?, previousState: SlidingUpPanelLayout.PanelState?, newState: SlidingUpPanelLayout.PanelState?) {
+        if (previousState == SlidingUpPanelLayout.PanelState.COLLAPSED && newState == SlidingUpPanelLayout.PanelState.EXPANDED){
+            // opened
+            when (fab.tag){
+                "0" -> {fab.visibility = View.GONE}
+                "1" -> {fab.visibility = View.VISIBLE}
+                "2" -> {fab.visibility = View.VISIBLE}
+            }
+        } else if (newState == SlidingUpPanelLayout.PanelState.COLLAPSED && previousState == SlidingUpPanelLayout.PanelState.EXPANDED) {
+            // closed
+            when (fab.tag){
+                "0" -> {fab.visibility = View.VISIBLE}
+                "1" -> {fab.visibility = View.GONE}
+                "2" -> {fab.visibility = View.GONE}
+            }
+        }
     }
 
     private fun fabState(i: Int) {
@@ -122,13 +143,15 @@ class TravelActivity : AppCompatActivity(), PendingResult.Callback<DirectionsRes
             0 -> {
                 fab.setImageDrawable(getDrawable(R.drawable.ic_open))
                 fab.tag = "0"
+                (maker as PanelFragment).setPanel(0)
             }
             1 -> {
-                fab.setImageDrawable(getDrawable(R.drawable.ic_maker))
+                fab.setImageDrawable(getDrawable(R.drawable.ic_lock))
                 fab.tag = "1"
+                (maker as PanelFragment).setPanel(1)
             }
             2-> {
-                fab.setImageDrawable(getDrawable(R.drawable.ic_lock))
+                fab.setImageDrawable(getDrawable(R.drawable.ic_maker))
                 fab.tag = "2"
             }
         }
@@ -138,16 +161,20 @@ class TravelActivity : AppCompatActivity(), PendingResult.Callback<DirectionsRes
         if (v.id == R.id.fab) {
             when (v.tag){
                 0 -> {
-                    panel.setPanel(0)
+                    // f is maker, fab is open
+                    (maker as PanelFragment).setPanel(2) // change panel to list
+                    sliding_panel.panelState = SlidingUpPanelLayout.PanelState.EXPANDED
                 }
                 1 -> {
-                    panel.setPanel(1)
+                    // f is stat, fab is lock
+                    (maker as PanelFragment).setPanel(0) // change panel to maker
+                    fabState(2)
                 }
                 2 -> {
-                    panel.setPanel(2)
+                    (maker as PanelFragment).setPanel(1)
+                    fabState(1)
                 }
             }
-            sliding_panel.panelState = SlidingUpPanelLayout.PanelState.EXPANDED
         }
     }
 
