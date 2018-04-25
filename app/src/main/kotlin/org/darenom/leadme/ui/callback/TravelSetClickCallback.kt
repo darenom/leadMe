@@ -8,5 +8,4 @@ import org.darenom.leadme.db.model.TravelSet
 
 interface TravelSetClickCallback {
     fun onClick(travelSet: TravelSet)
-    fun loadInMap(travelSet: TravelSet)
 }

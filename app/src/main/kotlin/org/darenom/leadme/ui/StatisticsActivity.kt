@@ -21,9 +21,6 @@ class StatisticsActivity : Fragment() {
     internal var name = BuildConfig.TMP_NAME
 
     private val mTravelSetClickCallback = object : TravelSetClickCallback {
-        override fun loadInMap(travelSet: TravelSet) {
-            // do nothing, is hidden
-        }
 
         override fun onClick(travelSet: TravelSet) {
             // load on map

@@ -36,16 +36,8 @@ class TravelListFragment : Fragment() {
     private var mTravelSetAdapter: TravelSetAdapter? = null
     private var mBinding: FragmentTravelsetListBinding? = null
     private val mTravelSetClickCallback = object : TravelSetClickCallback {
-        override fun loadInMap(travelSet: TravelSet) {
-            svm!!.name.value = travelSet.name
-        }
-
         override fun onClick(travelSet: TravelSet) {
-        //   if (lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
-        //       val intent = Intent(activity, StatisticsActivity::class.java)
-        //               .putExtra(KEY_TRAVELSET_NAME, travelSet.name)
-        //       startActivity(intent)
-        //   }
+            svm!!.name.value = travelSet.name
         }
     }
 
