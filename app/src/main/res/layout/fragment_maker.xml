@@ -61,7 +61,7 @@
                     android:gravity="center"
                     android:hint="@string/hint_waypoint"
                     android:drawableStart="@drawable/ic_opt_pos"
-                    android:enabled="@{enabled}"
+                    visibleGone="@{enabled}"
                     android:inputType="textPostalAddress" />
 
             </LinearLayout>
@@ -85,7 +85,7 @@
                 android:layout_marginTop="@dimen/spacer"
                 android:background="@color/colorPrimary"
                 android:onClick="swapFromTo"
-                android:enabled="@{enabled}"
+                visibleGone="@{enabled}"
                 android:src="@drawable/ic_swap_vert_black_24dp"
                 tools:ignore="ContentDescription" />
 
@@ -97,7 +97,7 @@
                 android:layout_alignParentEnd="true"
                 android:background="@drawable/drawable_spinner"
                 android:layout_marginBottom="@dimen/activity_vertical_margin"
-                android:enabled="@{enabled}"
+                visibleGone="@{enabled}"
                 android:focusable="true"
                 android:selectedItemPosition="@{travelSet.mode}" />
 

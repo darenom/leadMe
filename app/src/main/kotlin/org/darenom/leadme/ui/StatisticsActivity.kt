@@ -73,6 +73,12 @@ class StatisticsActivity : Fragment() {
         }
     }
 
+    override fun onDetach() {
+        super.onDetach()
+        setOk = false
+        statOk = false
+    }
+
     fun swapTo(name: String){
         this.name = name
         if (setOk) {

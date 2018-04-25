@@ -4,12 +4,9 @@ import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
 import android.os.Bundle
 import android.support.v4.app.Fragment
-import android.support.v4.app.FragmentManager
-import android.support.v4.app.FragmentPagerAdapter
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import kotlinx.android.synthetic.main.fragment_panel.*
 import org.darenom.leadme.R
 import org.darenom.leadme.ui.StatisticsActivity
 import org.darenom.leadme.ui.viewmodel.SharedViewModel
@@ -22,6 +19,8 @@ class PanelFragment : Fragment() {
     var listFragment: TravelListFragment? = null
     var statFragment: StatisticsActivity? = null
 
+    var current: Int = 0
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -31,8 +30,6 @@ class PanelFragment : Fragment() {
         statFragment = StatisticsActivity.getInstance()
         makerFragment = TravelMakerFragment.getInstance()
         listFragment = TravelListFragment.getInstance()
-
-
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -58,14 +55,21 @@ class PanelFragment : Fragment() {
         })
     }
 
-    internal fun setPanel(i : Int){
-        val f = when (i){
-            1 -> {statFragment}
-            2 -> {listFragment}
-            else -> {makerFragment}
+    internal fun setPanel(i: Int) {
+        val f = when (i) {
+            1 -> {
+                statFragment
+            }
+            2 -> {
+                listFragment
+            }
+            else -> {
+                makerFragment
+            }
 
         }
         childFragmentManager.beginTransaction().replace(R.id.fragment_panel, f, "maker").commit()
+        current = i
     }
 
 

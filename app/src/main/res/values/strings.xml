@@ -64,7 +64,6 @@
     <drawable name="ic_stat">@android:drawable/ic_menu_agenda</drawable>
     <drawable name="ic_opt_compass">@android:drawable/ic_menu_compass</drawable>
     <drawable name="ic_opt_pos">@android:drawable/ic_menu_mylocation</drawable>
-    <drawable name="ic_lock">@android:drawable/ic_lock_lock</drawable>
     <drawable name="ic_open">@android:drawable/ic_menu_add</drawable>
 
     <!-- TravelMode -->

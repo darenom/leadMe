@@ -96,7 +96,6 @@ class TravelMakerFragment : Fragment(), WaypointsChanged {
         }
         false
     }
-    var isLocked: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -188,15 +187,21 @@ class TravelMakerFragment : Fragment(), WaypointsChanged {
                 mBinding!!.travelSet = it
 
                 mBinding!!.edtFrom.setCompoundDrawablesWithIntrinsicBounds(
-                        if (it.originPosition.isEmpty())
-                            context!!.getDrawable(R.drawable.ic_opt_pos)
-                        else context!!.getDrawable(R.drawable.ic_clear_cancel),
+                        if (locked)
+                            null
+                        else
+                            if (it.originPosition.isEmpty())
+                                context!!.getDrawable(R.drawable.ic_opt_pos)
+                            else context!!.getDrawable(R.drawable.ic_clear_cancel),
                         null, null, null)
 
                 mBinding!!.edtTo.setCompoundDrawablesWithIntrinsicBounds(
-                        if (it.destinationPosition.isEmpty())
-                            context!!.getDrawable(R.drawable.ic_opt_pos)
-                        else context!!.getDrawable(R.drawable.ic_clear_cancel),
+                        if (locked)
+                            null
+                        else
+                            if (it.destinationPosition.isEmpty())
+                                context!!.getDrawable(R.drawable.ic_opt_pos)
+                            else context!!.getDrawable(R.drawable.ic_clear_cancel),
                         null, null, null)
 
                 (mBinding!!.rvWaypoints.adapter as WaypointAdapter).setList(it.waypointAddress, it.waypointPosition)
@@ -216,25 +221,11 @@ class TravelMakerFragment : Fragment(), WaypointsChanged {
         mBinding!!.edtFrom.requestFocus()
     }
 
+
     // UI locker
-    internal fun enable(b: Boolean) {
-        isLocked = !b
-
-        if (!b) {
-            mBinding!!.edtFrom.setCompoundDrawablesWithIntrinsicBounds(0,0,0,0)
-            mBinding!!.edtTo.setCompoundDrawablesWithIntrinsicBounds(0,0,0,0)
-        } else {
-            if (svm!!.travelSet.value!!.originPosition.isEmpty())
-                mBinding!!.edtFrom.setCompoundDrawablesWithIntrinsicBounds(context!!.getDrawable(R.drawable.ic_opt_pos), null, null, null)
-            else
-                mBinding!!.edtFrom.setCompoundDrawablesWithIntrinsicBounds(context!!.getDrawable(R.drawable.ic_clear_cancel), null, null, null)
-            if (svm!!.travelSet.value!!.destinationPosition.isEmpty())
-                mBinding!!.edtTo.setCompoundDrawablesWithIntrinsicBounds(context!!.getDrawable(R.drawable.ic_opt_pos), null, null, null)
-            else
-                mBinding!!.edtTo.setCompoundDrawablesWithIntrinsicBounds(context!!.getDrawable(R.drawable.ic_clear_cancel), null, null, null)
-
-        }
-
+    private var locked = false
+    private fun enable(b: Boolean) {
+        locked = !b
 
         if (b) {
             mItemTouchHelper!!.attachToRecyclerView(mBinding!!.rvWaypoints)
@@ -306,10 +297,6 @@ class TravelMakerFragment : Fragment(), WaypointsChanged {
             }
             R.id.edtWaypoint -> edtWaypoint.setText("")
         }
-    }
-
-    fun unlock() {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
     companion object {
