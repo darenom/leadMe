@@ -16,16 +16,9 @@ import org.darenom.leadme.ui.fragment.TravelStatFragment
  * Created by adm on 16/02/2018.
  */
 
-class StatisticsActivity : Fragment() {
+class TravelStatisticsFragment : Fragment() {
 
     internal var name = BuildConfig.TMP_NAME
-
-    private val mTravelSetClickCallback = object : TravelSetClickCallback {
-
-        override fun onClick(travelSet: TravelSet) {
-            // load on map
-        }
-    }
 
     private lateinit var travelSetFragment: TravelSetFragment
 
@@ -96,10 +89,10 @@ class StatisticsActivity : Fragment() {
     }
 
     companion object {
-        private var fragment: StatisticsActivity? = null
-        fun getInstance(): StatisticsActivity {
+        private var fragment: TravelStatisticsFragment? = null
+        fun getInstance(): TravelStatisticsFragment {
             if (null == fragment) {
-                fragment = StatisticsActivity()
+                fragment = TravelStatisticsFragment()
             }
             return fragment!!
         }

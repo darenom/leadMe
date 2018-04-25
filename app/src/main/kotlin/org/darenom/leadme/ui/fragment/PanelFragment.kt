@@ -8,7 +8,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import org.darenom.leadme.R
-import org.darenom.leadme.ui.StatisticsActivity
+import org.darenom.leadme.ui.TravelStatisticsFragment
 import org.darenom.leadme.ui.viewmodel.SharedViewModel
 
 
@@ -17,7 +17,7 @@ class PanelFragment : Fragment() {
     private lateinit var svm: SharedViewModel
     var makerFragment: TravelMakerFragment? = null
     var listFragment: TravelListFragment? = null
-    var statFragment: StatisticsActivity? = null
+    var statFragment: TravelStatisticsFragment? = null
 
     var current: Int = 0
 
@@ -27,7 +27,7 @@ class PanelFragment : Fragment() {
         setHasOptionsMenu(true)
         retainInstance = true
 
-        statFragment = StatisticsActivity.getInstance()
+        statFragment = TravelStatisticsFragment.getInstance()
         makerFragment = TravelMakerFragment.getInstance()
         listFragment = TravelListFragment.getInstance()
     }

@@ -42,7 +42,7 @@
             android:theme="@style/AppTheme.NoActionBar" />
 
         <activity
-            android:name=".ui.StatisticsActivity"
+            android:name=".ui.TravelStatisticsFragment"
             android:parentActivityName=".TravelActivity"
             android:theme="@style/AppTheme.NoActionBar" />
 
