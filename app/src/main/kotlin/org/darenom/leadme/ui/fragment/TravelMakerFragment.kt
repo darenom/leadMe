@@ -157,12 +157,6 @@ class TravelMakerFragment : Fragment(), WaypointsChanged {
             R.id.opt_clear -> {
                 mBinding!!.edtFrom.requestFocus()
             }
-            R.id.opt_play_stop -> {
-                if (TravelService.travelling)
-                    enable(false)
-                else
-                    enable(true)
-            }
         }
         return false
     }
@@ -187,21 +181,19 @@ class TravelMakerFragment : Fragment(), WaypointsChanged {
                 mBinding!!.travelSet = it
 
                 mBinding!!.edtFrom.setCompoundDrawablesWithIntrinsicBounds(
-                        if (locked)
-                            null
-                        else
-                            if (it.originPosition.isEmpty())
-                                context!!.getDrawable(R.drawable.ic_opt_pos)
-                            else context!!.getDrawable(R.drawable.ic_clear_cancel),
+                        when {
+                            locked -> null
+                            it.originPosition.isEmpty() -> context!!.getDrawable(R.drawable.ic_opt_pos)
+                            else -> context!!.getDrawable(R.drawable.ic_clear_cancel)
+                        },
                         null, null, null)
 
                 mBinding!!.edtTo.setCompoundDrawablesWithIntrinsicBounds(
-                        if (locked)
-                            null
-                        else
-                            if (it.destinationPosition.isEmpty())
-                                context!!.getDrawable(R.drawable.ic_opt_pos)
-                            else context!!.getDrawable(R.drawable.ic_clear_cancel),
+                        when {
+                            locked -> null
+                            it.destinationPosition.isEmpty() -> context!!.getDrawable(R.drawable.ic_opt_pos)
+                            else -> context!!.getDrawable(R.drawable.ic_clear_cancel)
+                        },
                         null, null, null)
 
                 (mBinding!!.rvWaypoints.adapter as WaypointAdapter).setList(it.waypointAddress, it.waypointPosition)
