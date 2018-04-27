@@ -1,20 +1,27 @@
 package org.darenom.leadme.ui.fragment
 
+import android.arch.lifecycle.Observer
+import android.arch.lifecycle.ViewModelProviders
 import android.os.Bundle
 import android.support.v4.app.Fragment
-import android.support.v4.app.FragmentManager
-import android.support.v4.app.FragmentPagerAdapter
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import kotlinx.android.synthetic.main.fragment_panel.*
+import kotlinx.android.synthetic.main.activity_splash.*
+import org.darenom.leadme.BaseApp
 import org.darenom.leadme.R
+import org.darenom.leadme.ui.TravelStatisticsFragment
+import org.darenom.leadme.ui.viewmodel.SharedViewModel
 
 
 class PanelFragment : Fragment() {
 
+    private lateinit var svm: SharedViewModel
     var makerFragment: TravelMakerFragment? = null
     var listFragment: TravelListFragment? = null
+    var statFragment: TravelStatisticsFragment? = null
+
+    var current: Int = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -22,9 +29,11 @@ class PanelFragment : Fragment() {
         setHasOptionsMenu(true)
         retainInstance = true
 
+        statFragment = TravelStatisticsFragment.getInstance()
         makerFragment = TravelMakerFragment.getInstance()
         listFragment = TravelListFragment.getInstance()
 
+        (activity!!.application as BaseApp).mActivity!!.loader.progress = 70
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -36,32 +45,36 @@ class PanelFragment : Fragment() {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
 
-        viewpager.adapter = SectionsPagerAdapter(activity!!.supportFragmentManager)
+        svm = ViewModelProviders.of(activity!!).get(SharedViewModel::class.java)
+        subscribeUi(svm)
 
-        bottombar.setOnNavigationItemSelectedListener({ item ->
-            item.isChecked = true
-            when (item.itemId) {
-                R.id.panel_maker -> viewpager.currentItem = 0
-                R.id.panel_list -> viewpager.currentItem = 1
-            }
-            false
+        childFragmentManager.beginTransaction().add(R.id.fragment_panel, makerFragment, "maker").commit()
+
+    }
+
+    private fun subscribeUi(vm: SharedViewModel) {
+        vm.name.observe(activity!!, Observer { it ->
+            if (null != it)
+                statFragment!!.swapTo(it)
         })
     }
 
-    inner class SectionsPagerAdapter(fm: FragmentManager) : FragmentPagerAdapter(fm) {
-        override fun getItem(position: Int): Fragment {
-            var f: Fragment? = null
-            when (position) {
-
-                0 -> f = makerFragment
-                1 -> f = listFragment
+    internal fun setPanel(i: Int) {
+        val f = when (i) {
+            1 -> {
+                statFragment
             }
-            return f!!
-        }
+            2 -> {
+                listFragment
+            }
+            else -> {
+                makerFragment
+            }
 
-        override fun getCount(): Int {
-            return 2
         }
+        childFragmentManager.beginTransaction().replace(R.id.fragment_panel, f, "maker").commit()
+        current = i
     }
+
 
 }

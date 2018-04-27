@@ -1,9 +1,7 @@
 package org.darenom.leadme.ui.fragment
 
-import android.arch.lifecycle.Lifecycle
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
-import android.content.Intent
 import android.databinding.DataBindingUtil
 import android.os.Bundle
 import android.support.annotation.Nullable
@@ -17,10 +15,8 @@ import org.darenom.leadme.R
 import org.darenom.leadme.databinding.FragmentTravelsetListBinding
 import org.darenom.leadme.db.entities.TravelSetEntity
 import org.darenom.leadme.db.model.TravelSet
-import org.darenom.leadme.ui.StatisticsActivity
 import org.darenom.leadme.ui.adapter.TravelSetAdapter
 import org.darenom.leadme.ui.callback.TravelSetClickCallback
-import org.darenom.leadme.ui.fragment.TravelSetFragment.Companion.KEY_TRAVELSET_NAME
 import org.darenom.leadme.ui.viewmodel.SharedViewModel
 
 /**
@@ -36,16 +32,8 @@ class TravelListFragment : Fragment() {
     private var mTravelSetAdapter: TravelSetAdapter? = null
     private var mBinding: FragmentTravelsetListBinding? = null
     private val mTravelSetClickCallback = object : TravelSetClickCallback {
-        override fun loadInMap(travelSet: TravelSet) {
-            svm!!.name.value = travelSet.name
-        }
-
         override fun onClick(travelSet: TravelSet) {
-            if (lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
-                val intent = Intent(activity, StatisticsActivity::class.java)
-                        .putExtra(KEY_TRAVELSET_NAME, travelSet.name)
-                startActivity(intent)
-            }
+            svm!!.name.value = travelSet.name
         }
     }
 

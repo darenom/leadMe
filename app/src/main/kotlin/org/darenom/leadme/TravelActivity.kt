@@ -23,13 +23,15 @@ import com.google.maps.model.DirectionsResult
 import com.google.maps.model.LatLng
 import com.google.maps.model.TravelMode
 import com.sothree.slidinguppanel.SlidingUpPanelLayout
+import kotlinx.android.synthetic.main.activity_splash.*
 import kotlinx.android.synthetic.main.activity_travel.*
-import kotlinx.android.synthetic.main.fragment_panel.*
 import org.darenom.leadme.db.DateConverter
 import org.darenom.leadme.model.Travel
 import org.darenom.leadme.service.TravelService
 import org.darenom.leadme.service.TravelService.Companion.travel
+import org.darenom.leadme.service.TravelService.Companion.travelling
 import org.darenom.leadme.ui.SaveTravelDialog
+import org.darenom.leadme.ui.fragment.PanelFragment
 import org.darenom.leadme.ui.fragment.TravelMapFragment
 import org.darenom.leadme.ui.viewmodel.SharedViewModel
 import java.util.*
@@ -46,7 +48,11 @@ import java.util.*
  * (still, infos about the travel remains as temporary)
  */
 
-class TravelActivity : AppCompatActivity(), PendingResult.Callback<DirectionsResult>, SaveTravelDialog.SaveTravelDialogListener {
+class TravelActivity : AppCompatActivity(),
+        PendingResult.Callback<DirectionsResult>,
+        SaveTravelDialog.SaveTravelDialogListener,
+        SlidingUpPanelLayout.PanelSlideListener {
+
 
     companion object {
         const val CHECK_TTS_ACCESS = 40
@@ -62,38 +68,42 @@ class TravelActivity : AppCompatActivity(), PendingResult.Callback<DirectionsRes
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        (application as BaseApp).mActivity!!.loader.progress = 40
         setContentView(R.layout.activity_travel)
 
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayShowTitleEnabled(true)
 
+        sliding_panel.addPanelSlideListener(this)
+
         svm = ViewModelProviders.of(this).get(SharedViewModel::class.java)
         subscribeUI()
+
         ttsChecker()
+
     }
 
     private fun subscribeUI() {
 
         travel.observe(this, Observer { it ->
-            if (null != it)
-                if (it.name.contentEquals(BuildConfig.TMP_NAME))
+            if (null != it) {
+                if (it.name.contentEquals(BuildConfig.TMP_NAME)) {
                     svm!!.write(it)     // save tmp file only
-
+                    supportActionBar?.setTitle(R.string.app_name)
+                } else
+                    supportActionBar?.title = it.name
+                fabState(0)
+                (maker as PanelFragment).setPanel(1)
+            } else {
+                supportActionBar?.setTitle(R.string.app_name)
+                fabState(2)
+                (maker as PanelFragment).setPanel(0)
+            }
+            sliding_panel.panelState = SlidingUpPanelLayout.PanelState.COLLAPSED
         })
 
         svm!!.name.observe(this, Observer { it ->
             if (null != it) {
-
-                // set title
-                if (it.contentEquals(BuildConfig.TMP_NAME))
-                    supportActionBar?.setTitle(R.string.app_name)
-                else
-                    supportActionBar?.title = it
-
-                // reset navigation to map
-                bottombar.selectedItemId = R.id.panel_maker
-                sliding_panel.panelState = SlidingUpPanelLayout.PanelState.COLLAPSED
-
                 // todo async task load data
                 svm!!.read(it) // set Travel
                 svm!!.monitor(it) // set TravelSet
@@ -127,6 +137,21 @@ class TravelActivity : AppCompatActivity(), PendingResult.Callback<DirectionsRes
         } else {
             mnuClear?.isVisible = svm!!.canCancel
             mnuTravel?.setIcon(R.drawable.ic_play)
+
+        }
+
+        if (TravelService.travelling) {
+            fab.visibility = View.GONE
+            fab.isEnabled = false
+        } else {
+            fab.isEnabled = true
+            if (sliding_panel.panelState == SlidingUpPanelLayout.PanelState.COLLAPSED)
+                if (svm!!.name.value!!.contentEquals(BuildConfig.TMP_NAME) && null == travel.value)
+                    fab.visibility = View.VISIBLE
+                else
+                    fab.visibility = View.GONE
+            else  if (sliding_panel.panelState == SlidingUpPanelLayout.PanelState.EXPANDED)
+                fab.visibility = View.VISIBLE
         }
 
         // values
@@ -168,15 +193,13 @@ class TravelActivity : AppCompatActivity(), PendingResult.Callback<DirectionsRes
 
             R.id.opt_clear -> {
                 svm!!.clear()
+                (maker as PanelFragment).setPanel(0)
+                fabState(2)
             }
 
-            R.id.opt_compass -> {
-                svm!!.optCompass.value = !svm!!.optCompass.value!!
-            }
+            R.id.opt_compass -> svm!!.optCompass.value = !svm!!.optCompass.value!!
 
-            R.id.opt_play_stop -> {
-                startStopTravel()
-            }
+            R.id.opt_play_stop -> startStopTravel()
 
             R.id.opt_direction_save -> {
                 if (!item.isChecked)
@@ -186,6 +209,75 @@ class TravelActivity : AppCompatActivity(), PendingResult.Callback<DirectionsRes
             }
         }
         return false
+    }
+
+    override fun onPanelSlide(panel: View, slideOffset: Float) {
+        // do nothing
+    }
+
+    override fun onPanelStateChanged(panel: View?, previousState: SlidingUpPanelLayout.PanelState?, newState: SlidingUpPanelLayout.PanelState?) {
+        if (!travelling)
+            if (previousState == SlidingUpPanelLayout.PanelState.DRAGGING &&
+                    newState == SlidingUpPanelLayout.PanelState.COLLAPSED)
+                when ((maker as PanelFragment).current) {
+                    0 -> if (svm!!.name.value!!.contentEquals(BuildConfig.TMP_NAME) && null == travel.value)
+                        fab.visibility = View.VISIBLE
+                    else fab.visibility = View.GONE
+
+                    else -> fab.visibility = View.GONE
+                }
+            else if (previousState == SlidingUpPanelLayout.PanelState.DRAGGING &&
+                    newState == SlidingUpPanelLayout.PanelState.EXPANDED)
+                when ((maker as PanelFragment).current) {
+                    2 -> if (svm!!.name.value!!.contentEquals(BuildConfig.TMP_NAME) && null == travel.value)
+                        fab.visibility = View.VISIBLE
+                    else fab.visibility = View.GONE
+                    else -> fab.visibility = View.VISIBLE
+                }
+    }
+
+    private fun fabState(i: Int) {
+        when (i) {
+            0 -> {
+                fab.setImageDrawable(getDrawable(R.drawable.ic_maker))
+                fab.tag = "0"
+            }
+            1 -> {
+                fab.setImageDrawable(getDrawable(R.drawable.ic_stat))
+                fab.tag = "1"
+            }
+            2 -> {
+                fab.setImageDrawable(getDrawable(R.drawable.ic_open))
+                fab.tag = "2"
+            }
+        }
+    }
+
+    fun fabClick(v: View) {
+        if (v.id == R.id.fab) {
+            when (v.tag) {
+                "0" -> {
+                    (maker as PanelFragment).setPanel(0)
+                    if (svm!!.name.value!!.contentEquals(BuildConfig.TMP_NAME) && null == travel.value)
+                        fabState(2)
+                    else
+                        fabState(1)
+                }
+                "1" -> {
+                    (maker as PanelFragment).setPanel(1) // change panel to maker
+                    if (svm!!.name.value!!.contentEquals(BuildConfig.TMP_NAME) && null == travel.value)
+                        fabState(2)
+                    else
+                        fabState(0)
+
+                }
+                "2" -> {
+                    (maker as PanelFragment).setPanel(2)
+                    fabState(0)
+                }
+            }
+            sliding_panel.panelState = SlidingUpPanelLayout.PanelState.EXPANDED
+        }
     }
 
     // start voice service on status completion or
@@ -322,11 +414,23 @@ class TravelActivity : AppCompatActivity(), PendingResult.Callback<DirectionsRes
 
     }
 
+    // return true if start travelling, false otherwise
     internal fun startStopTravel() {
-        if (!TravelService.travelling) {
-            // attempt start
-            if (!(application as BaseApp).travelService!!.startMotion(svm!!.travelSet.value!!.max + 1))
-            // check perm
+        if (TravelService.travelling) { // stop
+            (application as BaseApp).travelService!!.stopMotion()
+            svm!!.travelSet.value!!.max += 1
+
+            if (svm!!.travelSet.value!!.name.contentEquals(BuildConfig.TMP_NAME))
+                SaveTravelDialog().show(supportFragmentManager, R.string.app_name.toString()) // new travel
+            else
+                svm!!.update(svm!!.travelSet.value!!) // existing one
+            invalidateOptionsMenu()
+        } else
+            if ((application as BaseApp).travelService!!.startMotion(svm!!.travelSet.value!!.max + 1)) {
+                invalidateOptionsMenu()
+                return
+            } else {
+                // check perm
                 if (ContextCompat.checkSelfPermission(this,
                                 Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED)
                 //  missing feature
@@ -336,19 +440,8 @@ class TravelActivity : AppCompatActivity(), PendingResult.Callback<DirectionsRes
                     ActivityCompat.requestPermissions(this,
                             arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
                             PERM_START_MOTION)
-        } else {
-            // stop
-            (application as BaseApp).travelService!!.stopMotion()
-            svm!!.travelSet.value!!.max += 1
+            }
 
-            if (svm!!.travelSet.value!!.name.contentEquals(BuildConfig.TMP_NAME))
-                SaveTravelDialog().show(supportFragmentManager, R.string.app_name.toString())
-            else
-                svm!!.update(svm!!.travelSet.value!!)
-
-
-        }
-        invalidateOptionsMenu()
     }
 
     fun swapFromTo(v: View) {

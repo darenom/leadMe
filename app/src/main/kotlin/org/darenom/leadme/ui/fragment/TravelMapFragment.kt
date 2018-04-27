@@ -23,6 +23,7 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
 import com.google.maps.android.PolyUtil
+import kotlinx.android.synthetic.main.activity_splash.*
 import kotlinx.android.synthetic.main.layout_view_compass.*
 import org.darenom.leadme.BaseApp
 import org.darenom.leadme.R
@@ -139,7 +140,7 @@ class TravelMapFragment : Fragment(), OnMapReadyCallback,
         svm!!.optCompass.observe(this, Observer { it ->
             if (null != it) {
                 mBinding!!.showCompass = it
-                (activity!!.application as BaseApp).travelService!!.enableCompass(it, 0)
+                (activity!!.application as BaseApp).travelService?.enableCompass(it, 0)
             }
         })
 
@@ -190,6 +191,8 @@ class TravelMapFragment : Fragment(), OnMapReadyCallback,
             drawSet(svm!!.travelSet.value!!)
         }
 
+        (activity!!.application as BaseApp).mActivity!!.loader.progress = 100
+        (activity!!.application as BaseApp).mActivity!!.finish()
     }
 
     override fun onMapClick(it: LatLng) {

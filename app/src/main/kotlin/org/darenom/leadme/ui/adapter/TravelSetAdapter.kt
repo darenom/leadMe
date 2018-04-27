@@ -62,7 +62,6 @@ class TravelSetAdapter(private val mTravelSetClickCallback: TravelSetClickCallba
 
     override fun onBindViewHolder(holder: TravelSetViewHolder, position: Int) {
         holder.binding.travelSet = mTravelSetList!![position]
-        holder.binding.mSwitch = true
     }
 
     override fun getItemCount(): Int {

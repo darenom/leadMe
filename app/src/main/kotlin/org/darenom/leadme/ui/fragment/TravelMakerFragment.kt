@@ -157,12 +157,6 @@ class TravelMakerFragment : Fragment(), WaypointsChanged {
             R.id.opt_clear -> {
                 mBinding!!.edtFrom.requestFocus()
             }
-            R.id.opt_play_stop -> {
-                if (TravelService.travelling)
-                    enable(false)
-                else
-                    enable(true)
-            }
         }
         return false
     }
@@ -185,15 +179,25 @@ class TravelMakerFragment : Fragment(), WaypointsChanged {
         svm!!.travelSet.observe(this, Observer { it ->
             if (null != it) {
                 mBinding!!.travelSet = it
-                if (it.originPosition.isEmpty())
-                    edtFrom.setCompoundDrawablesWithIntrinsicBounds(context!!.getDrawable(R.drawable.ic_opt_pos), null, null, null)
-                else
-                    edtFrom.setCompoundDrawablesWithIntrinsicBounds(context!!.getDrawable(R.drawable.ic_clear_cancel), null, null, null)
-                if (it.destinationPosition.isEmpty())
-                    edtTo.setCompoundDrawablesWithIntrinsicBounds(context!!.getDrawable(R.drawable.ic_opt_pos), null, null, null)
-                else
-                    edtTo.setCompoundDrawablesWithIntrinsicBounds(context!!.getDrawable(R.drawable.ic_clear_cancel), null, null, null)
+
+                mBinding!!.edtFrom.setCompoundDrawablesWithIntrinsicBounds(
+                        when {
+                            locked -> null
+                            it.originPosition.isEmpty() -> context!!.getDrawable(R.drawable.ic_opt_pos)
+                            else -> context!!.getDrawable(R.drawable.ic_clear_cancel)
+                        },
+                        null, null, null)
+
+                mBinding!!.edtTo.setCompoundDrawablesWithIntrinsicBounds(
+                        when {
+                            locked -> null
+                            it.destinationPosition.isEmpty() -> context!!.getDrawable(R.drawable.ic_opt_pos)
+                            else -> context!!.getDrawable(R.drawable.ic_clear_cancel)
+                        },
+                        null, null, null)
+
                 (mBinding!!.rvWaypoints.adapter as WaypointAdapter).setList(it.waypointAddress, it.waypointPosition)
+
                 mBinding!!.edtWaypoint.setText("")
             }
         })
@@ -209,16 +213,19 @@ class TravelMakerFragment : Fragment(), WaypointsChanged {
         mBinding!!.edtFrom.requestFocus()
     }
 
-    // UI locker
-    private fun enable(b: Boolean) {
 
-        mBinding!!.enabled = b
+    // UI locker
+    private var locked = false
+    private fun enable(b: Boolean) {
+        locked = !b
 
         if (b) {
             mItemTouchHelper!!.attachToRecyclerView(mBinding!!.rvWaypoints)
         } else {
             mItemTouchHelper!!.attachToRecyclerView(null)
         }
+
+        mBinding!!.enabled = b
     }
 
     private fun setPoint(i: Int, s: String) {

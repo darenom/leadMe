@@ -17,7 +17,8 @@
 
     <!-- Panel -->
     <string name="panel_maker">Edit</string>
-    <string name="panel_list">Open / Details</string>
+    <string name="panel_list">Open</string>
+    <string name="panel_stat">Details</string>
 
     <!-- Map -->
     <string name="cant_travel">Location must be active to start travelling</string>
@@ -63,6 +64,7 @@
     <drawable name="ic_stat">@android:drawable/ic_menu_agenda</drawable>
     <drawable name="ic_opt_compass">@android:drawable/ic_menu_compass</drawable>
     <drawable name="ic_opt_pos">@android:drawable/ic_menu_mylocation</drawable>
+    <drawable name="ic_open">@android:drawable/ic_menu_add</drawable>
 
     <!-- TravelMode -->
     <string-array name="travel_mode_drw">
