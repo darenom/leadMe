@@ -17,6 +17,8 @@ import com.google.android.gms.common.api.GoogleApiClient
 import com.google.android.gms.location.LocationServices
 import org.darenom.leadme.db.AppDatabase
 import org.darenom.leadme.service.TravelService
+import android.support.v7.app.AppCompatActivity
+import kotlinx.android.synthetic.main.activity_splash.*
 
 
 /**
@@ -25,6 +27,7 @@ import org.darenom.leadme.service.TravelService
 
 class BaseApp : Application(), GoogleApiClient.OnConnectionFailedListener, GoogleApiClient.ConnectionCallbacks {
 
+    var mActivity: AppCompatActivity? = null
     var mAppExecutors: AppExecutors? = null
     val isNetworkAvailable: Boolean
         get() {
@@ -43,11 +46,13 @@ class BaseApp : Application(), GoogleApiClient.OnConnectionFailedListener, Googl
             val binder = service as TravelService.TravelServiceBinder
             travelService = binder.service
             travelService!!.onStartCommand(null, START_FLAG_RETRY, 10)
+            mActivity!!.loader.progress = 30
+            startActivity(Intent(applicationContext, TravelActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
         }
 
         override fun onServiceDisconnected(arg0: ComponentName) {
             Log.e("BaseApp", "Disconnected from travelService")
-            travelService = null
+            onTerminate()
         }
     }
     private var mGoogleApiClient: GoogleApiClient? = null
@@ -72,15 +77,20 @@ class BaseApp : Application(), GoogleApiClient.OnConnectionFailedListener, Googl
 
         travelService?.stopSelf()
 
+        database.close()
+
         if (mGoogleApiClient!!.isConnected)
             mGoogleApiClient!!.disconnect()
 
+        travelService = null
         mAppExecutors = null
+        mGoogleApiClient = null
 
         super.onTerminate()
     }
 
     override fun onConnected(@Nullable bundle: Bundle?) {
+        mActivity!!.loader.progress = 20
         bindService(Intent(this, TravelService::class.java),
                 travelCnx, Context.BIND_AUTO_CREATE)
     }

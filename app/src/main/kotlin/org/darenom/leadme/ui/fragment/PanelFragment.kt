@@ -7,6 +7,8 @@ import android.support.v4.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import kotlinx.android.synthetic.main.activity_splash.*
+import org.darenom.leadme.BaseApp
 import org.darenom.leadme.R
 import org.darenom.leadme.ui.TravelStatisticsFragment
 import org.darenom.leadme.ui.viewmodel.SharedViewModel
@@ -30,6 +32,8 @@ class PanelFragment : Fragment() {
         statFragment = TravelStatisticsFragment.getInstance()
         makerFragment = TravelMakerFragment.getInstance()
         listFragment = TravelListFragment.getInstance()
+
+        (activity!!.application as BaseApp).mActivity!!.loader.progress = 70
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {

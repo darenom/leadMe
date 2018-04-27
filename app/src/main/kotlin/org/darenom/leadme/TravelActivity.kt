@@ -23,6 +23,7 @@ import com.google.maps.model.DirectionsResult
 import com.google.maps.model.LatLng
 import com.google.maps.model.TravelMode
 import com.sothree.slidinguppanel.SlidingUpPanelLayout
+import kotlinx.android.synthetic.main.activity_splash.*
 import kotlinx.android.synthetic.main.activity_travel.*
 import org.darenom.leadme.db.DateConverter
 import org.darenom.leadme.model.Travel
@@ -67,6 +68,7 @@ class TravelActivity : AppCompatActivity(),
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        (application as BaseApp).mActivity!!.loader.progress = 40
         setContentView(R.layout.activity_travel)
 
         setSupportActionBar(toolbar)
