@@ -10,7 +10,6 @@ import android.view.ViewGroup
 import kotlinx.android.synthetic.main.activity_splash.*
 import org.darenom.leadme.BaseApp
 import org.darenom.leadme.R
-import org.darenom.leadme.ui.TravelStatisticsFragment
 import org.darenom.leadme.ui.viewmodel.SharedViewModel
 
 

@@ -1,4 +1,4 @@
-package org.darenom.leadme.ui
+package org.darenom.leadme.ui.fragment
 
 import android.os.Bundle
 import android.support.v4.app.Fragment
@@ -7,10 +7,6 @@ import android.view.View
 import android.view.ViewGroup
 import org.darenom.leadme.BuildConfig
 import org.darenom.leadme.R
-import org.darenom.leadme.db.model.TravelSet
-import org.darenom.leadme.ui.callback.TravelSetClickCallback
-import org.darenom.leadme.ui.fragment.TravelSetFragment
-import org.darenom.leadme.ui.fragment.TravelStatFragment
 
 /**
  * Created by adm on 16/02/2018.
@@ -33,7 +29,7 @@ class TravelStatisticsFragment : Fragment() {
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         super.onCreateView(inflater, container, savedInstanceState)
-        val v = inflater.inflate(R.layout.activity_statistics, container, false)
+        val v = inflater.inflate(R.layout.fragment_statistics, container, false)
         return v
     }
 
