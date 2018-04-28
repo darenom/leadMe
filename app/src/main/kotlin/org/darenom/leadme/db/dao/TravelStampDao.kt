@@ -18,11 +18,11 @@ interface TravelStampDao {
     @Delete
     fun delete(vararg travelStampEntity: TravelStampEntity)
 
-    @Query("SELECT * FROM TravelStampEntity WHERE name LIKE :name")
-    fun getByName(name: String): LiveData<List<TravelStampEntity>>
+    //@Query("SELECT * FROM TravelStampEntity WHERE name LIKE :name")
+    //fun getByName(name: String): LiveData<List<TravelStampEntity>>
 
-    @Query("SELECT DISTINCT name, iter FROM TravelStampEntity GROUP BY name, iter")
-    fun getNames(): List<TravelStamp>
+    //@Query("SELECT DISTINCT name, iter FROM TravelStampEntity GROUP BY name, iter")
+    //fun getNames(): List<TravelStamp>
 
     @Query("SELECT * FROM TravelStampEntity WHERE name LIKE :name AND  iter = :iter")
     fun getByIter(name: String, iter: Int): List<TravelStampEntity>

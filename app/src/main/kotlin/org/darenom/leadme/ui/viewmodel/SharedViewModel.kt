@@ -9,6 +9,7 @@ import android.content.SharedPreferences
 import android.graphics.Bitmap
 import android.location.Address
 import android.location.Geocoder
+import android.location.Location
 import android.util.Log
 import com.google.gson.Gson
 import com.google.maps.model.LatLng
@@ -16,12 +17,15 @@ import org.darenom.leadme.AppExecutors
 import org.darenom.leadme.BaseApp
 import org.darenom.leadme.BuildConfig
 import org.darenom.leadme.db.AppDatabase
+import org.darenom.leadme.db.DateConverter
 import org.darenom.leadme.db.entities.TravelSetEntity
+import org.darenom.leadme.db.entities.TravelStatEntity
 import org.darenom.leadme.model.Travel
 import org.darenom.leadme.service.TravelService.Companion.travel
 import java.io.*
 import java.nio.charset.StandardCharsets
 import java.util.*
+import kotlin.math.roundToInt
 
 
 /**
@@ -131,6 +135,8 @@ class SharedViewModel(app: Application) : AndroidViewModel(app) {
 
     // handling edit text inputs
     fun setPoint(a: PointType, s: String) {
+
+        travelSet.value ?: return
 
         val hasChanged = when (a) {
             PointType.ORIGIN -> !s.contentEquals(travelSet.value!!.originAddress)
@@ -279,6 +285,35 @@ class SharedViewModel(app: Application) : AndroidViewModel(app) {
             database!!.travelSetDao().insert(travelSetEntity)
         }
 
+    }
+
+    internal fun createStatRecord() {
+        val t = TravelStatEntity()
+        t.name = travelSet.value!!.name
+        t.iter = travelSet.value!!.max
+        executors!!.diskIO().execute {
+            var d = 0.0
+            val tmpLoc = Location("tmp")
+            val u = database!!.travelStampDao().getByIter(t.name, t.iter)
+            t.timestart = DateConverter.toDate(u[0].time!!).toString().split("GMT")[0]
+            t.timeend = DateConverter.toDate(u[u.lastIndex].time!!).toString().split("GMT")[0]
+            t.timed = DateConverter.compoundDuration((u[u.lastIndex].time!! - u[0].time!!) / 1000)
+            u.forEachIndexed { index, it ->
+                if (index > 0) {
+                    val p = Location("po")
+                    p.latitude = it.lat!!
+                    p.longitude = it.lng!!
+                    d += p.distanceTo(tmpLoc)
+                }
+                tmpLoc.latitude = it.lat!!
+                tmpLoc.longitude = it.lng!!
+
+            }
+            t.distance = if (d < 1000) "${d.roundToInt()} m" else "${(d / 1000).toFloat()} km"
+            t.avgSpeed = "${((d / 1000) / ((u[u.lastIndex].time!! - u[0].time!!) / 3600)).toFloat()} km/h"
+
+            database!!.travelStatDao().insert(t)
+        }
     }
 
     private fun wipe(name: String) {

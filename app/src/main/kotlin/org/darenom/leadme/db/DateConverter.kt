@@ -19,9 +19,9 @@ object DateConverter {
         return (date?.time)!!.toLong()
     }
 
-    fun compoundDuration(n: Int): String {
+    fun compoundDuration(n: Long): String {
         if (n < 0) return "" // task doesn't ask for negative integers to be converted
-        if (n == 0) return "0 sec"
+        if (n == 0L) return "0 sec"
         val weeks  : Int
         val days   : Int
         val hours  : Int
@@ -31,8 +31,8 @@ object DateConverter {
         var rem    : Int
         var result = ""
 
-        weeks = n / divisor
-        rem   = n % divisor
+        weeks = (n / divisor).toInt()
+        rem   = (n % divisor).toInt()
         divisor /= 7
         days  = rem / divisor
         rem  %= divisor

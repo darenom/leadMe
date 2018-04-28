@@ -5,12 +5,14 @@ import android.arch.lifecycle.ViewModelProviders
 import android.databinding.DataBindingUtil
 import android.os.Bundle
 import android.support.v4.app.Fragment
+import android.support.v7.widget.LinearLayoutManager
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import org.darenom.leadme.R
 import org.darenom.leadme.databinding.FragmentTravelstatBinding
 import org.darenom.leadme.db.entities.TravelStatEntity
+import org.darenom.leadme.ui.adapter.TravelStatAdapter
 import org.darenom.leadme.ui.viewmodel.TravelStatViewModel
 
 /**
@@ -21,8 +23,13 @@ class TravelStatFragment : Fragment() {
 
     private var mBinding: FragmentTravelstatBinding? = null
 
+    private lateinit var mTravelStatAdapter: TravelStatAdapter
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         mBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_travelstat, container, false)
+        mTravelStatAdapter = TravelStatAdapter()
+        mBinding!!.travelstatlist.layoutManager = LinearLayoutManager(context)
+        mBinding!!.travelstatlist.adapter = mTravelStatAdapter
         return mBinding!!.root
     }
 
@@ -35,10 +42,11 @@ class TravelStatFragment : Fragment() {
 
     private fun subscribeToModel(model: TravelStatViewModel) {
 
-        model.observableTravelStat.observe(this, Observer<TravelStatEntity> { it ->
+        model.observableTravelStat.observe(this, Observer<List<TravelStatEntity>> { it ->
             if (null != it) {
-               // mBinding!!.travelStat = it
+                mTravelStatAdapter.setTravelStatList(it)
             }
+            mBinding!!.executePendingBindings()
         })
 
     }

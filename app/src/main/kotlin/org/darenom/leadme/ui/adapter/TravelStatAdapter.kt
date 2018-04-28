@@ -16,7 +16,7 @@ import org.darenom.leadme.ui.callback.TravelStatClickCallback
  */
 
 
-class TravelStatAdapter(private val mTravelStatClickCallback: TravelStatClickCallback?)
+class TravelStatAdapter
     : RecyclerView.Adapter<TravelStatAdapter.CommentViewHolder>() {
 
     private var mTravelStatList: List<TravelStat>? = null
@@ -56,7 +56,6 @@ class TravelStatAdapter(private val mTravelStatClickCallback: TravelStatClickCal
         val binding = DataBindingUtil
                 .inflate<ItemTravelstatBinding>(LayoutInflater.from(parent.context), R.layout.item_travelstat,
                         parent, false)
-        binding.callback = mTravelStatClickCallback
         return CommentViewHolder(binding)
     }
 
