@@ -32,7 +32,7 @@
         android:layout_height="match_parent"
         android:layout_marginTop="?attr/actionBarSize"
         android:gravity="bottom"
-        sothree:umanoPanelHeight="68dp"
+        sothree:umanoPanelHeight="106dp"
         sothree:umanoShadowHeight="4dp">
 
         <fragment
