@@ -46,8 +46,7 @@ class BaseApp : Application(), GoogleApiClient.OnConnectionFailedListener, Googl
             val binder = service as TravelService.TravelServiceBinder
             travelService = binder.service
             travelService!!.onStartCommand(null, START_FLAG_RETRY, 10)
-            mActivity!!.loader.progress = 30
-            startActivity(Intent(applicationContext, TravelActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+            moveOn()
         }
 
         override fun onServiceDisconnected(arg0: ComponentName) {
@@ -55,6 +54,12 @@ class BaseApp : Application(), GoogleApiClient.OnConnectionFailedListener, Googl
             onTerminate()
         }
     }
+
+    fun moveOn() {
+        mActivity?.loader?.progress = 30
+        startActivity(Intent(applicationContext, TravelActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+    }
+
     private var mGoogleApiClient: GoogleApiClient? = null
 
     override fun onCreate() {
@@ -90,7 +95,7 @@ class BaseApp : Application(), GoogleApiClient.OnConnectionFailedListener, Googl
     }
 
     override fun onConnected(@Nullable bundle: Bundle?) {
-        mActivity!!.loader.progress = 20
+        mActivity?.loader?.progress = 20
         bindService(Intent(this, TravelService::class.java),
                 travelCnx, Context.BIND_AUTO_CREATE)
     }

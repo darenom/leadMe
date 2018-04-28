@@ -191,8 +191,8 @@ class TravelMapFragment : Fragment(), OnMapReadyCallback,
             drawSet(svm!!.travelSet.value!!)
         }
 
-        (activity!!.application as BaseApp).mActivity!!.loader.progress = 100
-        (activity!!.application as BaseApp).mActivity!!.finish()
+        (activity!!.application as BaseApp).mActivity?.loader?.progress = 100
+        (activity!!.application as BaseApp).mActivity?.finish()
     }
 
     override fun onMapClick(it: LatLng) {
@@ -398,7 +398,7 @@ class TravelMapFragment : Fragment(), OnMapReadyCallback,
                 val cu = CameraUpdateFactory.newLatLngBounds(bounds, 50) // animate
                 gm!!.animateCamera(cu, object : GoogleMap.CancelableCallback {
                     override fun onFinish() {   // on finish save snapshot
-                        gm!!.snapshot { svm!!.write(it) }
+                        //gm!!.snapshot { svm!!.write(it) }
                         mBinding!!.showProgress = false
                         processing = false
                     }

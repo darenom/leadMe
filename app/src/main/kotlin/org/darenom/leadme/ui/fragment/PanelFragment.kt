@@ -32,7 +32,7 @@ class PanelFragment : Fragment() {
         makerFragment = TravelMakerFragment.getInstance()
         listFragment = TravelListFragment.getInstance()
 
-        (activity!!.application as BaseApp).mActivity!!.loader.progress = 70
+        (activity!!.application as BaseApp).mActivity?.loader?.progress = 70
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {

@@ -21,6 +21,7 @@ import android.widget.*
 import com.google.maps.model.LatLng
 import kotlinx.android.synthetic.main.fragment_maker.*
 import org.darenom.leadme.BaseApp
+import org.darenom.leadme.BuildConfig
 import org.darenom.leadme.R
 import org.darenom.leadme.TravelActivity
 import org.darenom.leadme.databinding.FragmentMakerBinding
@@ -182,7 +183,6 @@ class TravelMakerFragment : Fragment(), WaypointsChanged {
 
                 mBinding!!.edtFrom.setCompoundDrawablesWithIntrinsicBounds(
                         when {
-                            locked -> null
                             it.originPosition.isEmpty() -> context!!.getDrawable(R.drawable.ic_opt_pos)
                             else -> context!!.getDrawable(R.drawable.ic_clear_cancel)
                         },
@@ -190,7 +190,6 @@ class TravelMakerFragment : Fragment(), WaypointsChanged {
 
                 mBinding!!.edtTo.setCompoundDrawablesWithIntrinsicBounds(
                         when {
-                            locked -> null
                             it.destinationPosition.isEmpty() -> context!!.getDrawable(R.drawable.ic_opt_pos)
                             else -> context!!.getDrawable(R.drawable.ic_clear_cancel)
                         },
@@ -203,10 +202,11 @@ class TravelMakerFragment : Fragment(), WaypointsChanged {
         })
 
         travel.observe(this, Observer { it ->
-            if (null == it)
-                enable(true)
-            else
-                enable(false)
+            when {
+                null == it -> enable(true)
+                it.name.contentEquals(BuildConfig.TMP_NAME) -> enable(true)
+                else -> enable(false)
+            }
 
         })
 
@@ -215,9 +215,25 @@ class TravelMakerFragment : Fragment(), WaypointsChanged {
 
 
     // UI locker
-    private var locked = false
     private fun enable(b: Boolean) {
-        locked = !b
+
+        if (null != svm!!.travelSet.value) {
+            mBinding?.edtFrom?.setCompoundDrawablesWithIntrinsicBounds(
+                    when {
+                        !b -> null
+                        svm!!.travelSet.value!!.originPosition.isEmpty() -> context!!.getDrawable(R.drawable.ic_opt_pos)
+                        else -> context!!.getDrawable(R.drawable.ic_clear_cancel)
+                    },
+                    null, null, null)
+
+            mBinding?.edtTo?.setCompoundDrawablesWithIntrinsicBounds(
+                    when {
+                        !b -> null
+                        svm!!.travelSet.value!!.destinationPosition.isEmpty() -> context!!.getDrawable(R.drawable.ic_opt_pos)
+                        else -> context!!.getDrawable(R.drawable.ic_clear_cancel)
+                    },
+                    null, null, null)
+        }
 
         if (b) {
             mItemTouchHelper!!.attachToRecyclerView(mBinding!!.rvWaypoints)
@@ -230,7 +246,6 @@ class TravelMakerFragment : Fragment(), WaypointsChanged {
 
     private fun setPoint(i: Int, s: String) {
         if ((activity!!.application as BaseApp).isNetworkAvailable) {
-
             val a: SharedViewModel.Companion.PointType? = when (i) {
                 R.id.edtFrom -> SharedViewModel.Companion.PointType.ORIGIN
                 R.id.edtTo -> SharedViewModel.Companion.PointType.DESTINATION
@@ -289,6 +304,7 @@ class TravelMakerFragment : Fragment(), WaypointsChanged {
             }
             R.id.edtWaypoint -> edtWaypoint.setText("")
         }
+        travel.value = null // reset travel as input has changed
     }
 
     companion object {

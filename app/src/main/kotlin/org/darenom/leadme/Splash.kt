@@ -17,7 +17,12 @@ class Splash : AppCompatActivity() {
     override fun onCreate(@Nullable savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_splash)
-        (application as BaseApp).mActivity = this
+        if (null == (application as BaseApp).mActivity)
+            (application as BaseApp).mActivity = this
+        else {
+            (application as BaseApp).moveOn()
+            finish()
+        }
 
     }
 

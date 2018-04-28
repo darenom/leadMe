@@ -68,7 +68,7 @@ class TravelActivity : AppCompatActivity(),
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        (application as BaseApp).mActivity!!.loader.progress = 40
+        (application as BaseApp).mActivity?.loader?.progress = 40
         setContentView(R.layout.activity_travel)
 
         setSupportActionBar(toolbar)
@@ -92,13 +92,14 @@ class TravelActivity : AppCompatActivity(),
                     supportActionBar?.setTitle(R.string.app_name)
                 } else
                     supportActionBar?.title = it.name
-                fabState(0)
                 (maker as PanelFragment).setPanel(1)
+                fabState(0)
             } else {
                 supportActionBar?.setTitle(R.string.app_name)
-                fabState(2)
                 (maker as PanelFragment).setPanel(0)
+                fabState(2)
             }
+            setFabVisiblity()
             sliding_panel.panelState = SlidingUpPanelLayout.PanelState.COLLAPSED
         })
 
@@ -121,43 +122,27 @@ class TravelActivity : AppCompatActivity(),
     override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
         super.onPrepareOptionsMenu(menu)
 
-        // visibility
-
         val mnuCompass = menu?.findItem(R.id.opt_compass)
         val mnuClear = menu?.findItem(R.id.opt_clear)
         val mnuTravel = menu?.findItem(R.id.opt_play_stop)
         val mnuAskSave = menu?.findItem(R.id.opt_direction_save)
 
+        mnuClear?.isVisible = when (TravelService.travelling) {
+            true ->  false
+            else -> svm!!.canCancel
+        }
+
+
         mnuCompass?.isVisible = (application as BaseApp).travelService!!.hasCompass
-
-        mnuTravel?.isVisible = travel.value != null
-        if (TravelService.travelling) {
-            mnuClear?.isVisible = false
-            mnuTravel?.setIcon(R.drawable.ic_pause)
-        } else {
-            mnuClear?.isVisible = svm!!.canCancel
-            mnuTravel?.setIcon(R.drawable.ic_play)
-
-        }
-
-        if (TravelService.travelling) {
-            fab.visibility = View.GONE
-            fab.isEnabled = false
-        } else {
-            fab.isEnabled = true
-            if (sliding_panel.panelState == SlidingUpPanelLayout.PanelState.COLLAPSED)
-                if (svm!!.name.value!!.contentEquals(BuildConfig.TMP_NAME) && null == travel.value)
-                    fab.visibility = View.VISIBLE
-                else
-                    fab.visibility = View.GONE
-            else  if (sliding_panel.panelState == SlidingUpPanelLayout.PanelState.EXPANDED)
-                fab.visibility = View.VISIBLE
-        }
-
-        // values
         mnuCompass?.isChecked = svm!!.optCompass.value!!
 
-        if (TravelService.travelling) mnuClear?.isVisible = false else mnuClear?.isVisible = svm!!.canCancel
+        mnuTravel?.isVisible = travel.value != null
+        mnuTravel?.setIcon(
+                when (TravelService.travelling){
+                        true -> R.drawable.ic_pause
+                        false ->R.drawable.ic_play
+                    }
+            )
 
         if (TravelService.travelling)
             mnuAskSave?.isVisible = false
@@ -193,8 +178,9 @@ class TravelActivity : AppCompatActivity(),
 
             R.id.opt_clear -> {
                 svm!!.clear()
-                (maker as PanelFragment).setPanel(0)
+                if ((maker as PanelFragment).current != 0) (maker as PanelFragment).setPanel(0)
                 fabState(2)
+                setFabVisiblity()
             }
 
             R.id.opt_compass -> svm!!.optCompass.value = !svm!!.optCompass.value!!
@@ -218,22 +204,14 @@ class TravelActivity : AppCompatActivity(),
     override fun onPanelStateChanged(panel: View?, previousState: SlidingUpPanelLayout.PanelState?, newState: SlidingUpPanelLayout.PanelState?) {
         if (!travelling)
             if (previousState == SlidingUpPanelLayout.PanelState.DRAGGING &&
-                    newState == SlidingUpPanelLayout.PanelState.COLLAPSED)
-                when ((maker as PanelFragment).current) {
-                    0 -> if (svm!!.name.value!!.contentEquals(BuildConfig.TMP_NAME) && null == travel.value)
-                        fab.visibility = View.VISIBLE
-                    else fab.visibility = View.GONE
+                    newState == SlidingUpPanelLayout.PanelState.COLLAPSED) {
 
-                    else -> fab.visibility = View.GONE
-                }
-            else if (previousState == SlidingUpPanelLayout.PanelState.DRAGGING &&
+                if (fab.tag == "2") (maker as PanelFragment).setPanel(0)
+                setFabVisiblity()
+
+            } else if (previousState == SlidingUpPanelLayout.PanelState.DRAGGING &&
                     newState == SlidingUpPanelLayout.PanelState.EXPANDED)
-                when ((maker as PanelFragment).current) {
-                    2 -> if (svm!!.name.value!!.contentEquals(BuildConfig.TMP_NAME) && null == travel.value)
-                        fab.visibility = View.VISIBLE
-                    else fab.visibility = View.GONE
-                    else -> fab.visibility = View.VISIBLE
-                }
+                setFabVisiblity()
     }
 
     private fun fabState(i: Int) {
@@ -253,8 +231,29 @@ class TravelActivity : AppCompatActivity(),
         }
     }
 
+    private fun setFabVisiblity(){
+        if (TravelService.travelling) {
+            fab.visibility = View.GONE
+            fab.isEnabled = false
+        } else {
+            fab.isEnabled = true
+            if (sliding_panel.panelState == SlidingUpPanelLayout.PanelState.COLLAPSED)
+                if (svm!!.name.value!!.contentEquals(BuildConfig.TMP_NAME) && null == travel.value)
+                    fab.visibility = View.VISIBLE
+                else
+                    fab.visibility = View.GONE
+            else  if (sliding_panel.panelState == SlidingUpPanelLayout.PanelState.EXPANDED)
+                if (svm!!.name.value!!.contentEquals(BuildConfig.TMP_NAME) && null == travel.value)
+                    fab.visibility = View.GONE
+                else
+                    fab.visibility = View.VISIBLE
+
+        }
+    }
+
     fun fabClick(v: View) {
         if (v.id == R.id.fab) {
+            fab.visibility = View.GONE
             when (v.tag) {
                 "0" -> {
                     (maker as PanelFragment).setPanel(0)
@@ -264,7 +263,7 @@ class TravelActivity : AppCompatActivity(),
                         fabState(1)
                 }
                 "1" -> {
-                    (maker as PanelFragment).setPanel(1) // change panel to maker
+                    (maker as PanelFragment).setPanel(1)
                     if (svm!!.name.value!!.contentEquals(BuildConfig.TMP_NAME) && null == travel.value)
                         fabState(2)
                     else
@@ -272,11 +271,12 @@ class TravelActivity : AppCompatActivity(),
 
                 }
                 "2" -> {
-                    (maker as PanelFragment).setPanel(2)
-                    fabState(0)
+                    if ((maker as PanelFragment).current != 2)
+                        (maker as PanelFragment).setPanel(2)
                 }
             }
             sliding_panel.panelState = SlidingUpPanelLayout.PanelState.EXPANDED
+            setFabVisiblity()
         }
     }
 
@@ -394,11 +394,11 @@ class TravelActivity : AppCompatActivity(),
 
             (application as BaseApp).mAppExecutors!!.diskIO().execute({
                 val tmpTravel = Travel().transform(result.routes[0])
-                var d = 0
-                var t = 0
+                var d = 0L
+                var t = 0L
                 result.routes[0].legs.forEach {
-                    d += it.distance.inMeters.toInt()
-                    t += it.duration.inSeconds.toInt()
+                    d += it.distance.inMeters
+                    t += it.duration.inSeconds
                 }
 
                 (application as BaseApp).mAppExecutors!!.mainThread().execute({
@@ -406,8 +406,6 @@ class TravelActivity : AppCompatActivity(),
                     svm!!.travelSet.value!!.distance = if (d > 999) "${d / 1000} km" else "$d m"
                     svm!!.travelSet.value!!.estimatedTime = DateConverter.compoundDuration(t)
                     svm!!.update(svm!!.travelSet.value!!)
-
-
                 })
             })
         }
@@ -422,8 +420,11 @@ class TravelActivity : AppCompatActivity(),
 
             if (svm!!.travelSet.value!!.name.contentEquals(BuildConfig.TMP_NAME))
                 SaveTravelDialog().show(supportFragmentManager, R.string.app_name.toString()) // new travel
-            else
+            else {
                 svm!!.update(svm!!.travelSet.value!!) // existing one
+                svm!!.createStatRecord()
+            }
+
             invalidateOptionsMenu()
         } else
             if ((application as BaseApp).travelService!!.startMotion(svm!!.travelSet.value!!.max + 1)) {
