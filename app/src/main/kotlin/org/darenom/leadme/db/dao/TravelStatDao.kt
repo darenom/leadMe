@@ -20,7 +20,7 @@ interface TravelStatDao {
     fun delete(vararg travelSetEntity: TravelStatEntity)
 
     @Query("SELECT * FROM TravelStatEntity WHERE name LIKE :name")
-    fun getByName(name: String): LiveData<TravelStatEntity>
+    fun getByName(name: String): LiveData<List<TravelStatEntity>>
 
     @Query("SELECT * FROM TravelStatEntity")
     fun getAll(): LiveData<List<TravelStatEntity>>
