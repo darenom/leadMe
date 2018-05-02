@@ -10,9 +10,14 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import org.darenom.leadme.R
+import org.darenom.leadme.TravelActivity
 import org.darenom.leadme.databinding.FragmentTravelstatBinding
 import org.darenom.leadme.db.entities.TravelStatEntity
+import org.darenom.leadme.db.model.TravelSet
+import org.darenom.leadme.db.model.TravelStat
 import org.darenom.leadme.ui.adapter.TravelStatAdapter
+import org.darenom.leadme.ui.callback.TravelSetClickCallback
+import org.darenom.leadme.ui.callback.TravelStatClickCallback
 import org.darenom.leadme.ui.viewmodel.TravelStatViewModel
 
 /**
@@ -25,9 +30,19 @@ class TravelStatFragment : Fragment() {
 
     private lateinit var mTravelStatAdapter: TravelStatAdapter
 
+    private var ref: String = ""
+    private val mTravelStatClickCallback = object : TravelStatClickCallback {
+        override fun onClick(travelStat: TravelStat) {
+            if (!String.format("%s%s", travelStat.name, travelStat.iter.toString()).contentEquals(ref)) {
+                (activity!! as TravelActivity).setRun(travelStat.name, travelStat.iter)
+                ref = String.format("%s%s", travelStat.name, travelStat.iter.toString())
+            }
+        }
+    }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         mBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_travelstat, container, false)
-        mTravelStatAdapter = TravelStatAdapter()
+        mTravelStatAdapter = TravelStatAdapter(mTravelStatClickCallback)
         mBinding!!.travelstatlist.layoutManager = LinearLayoutManager(context)
         mBinding!!.travelstatlist.adapter = mTravelStatAdapter
         return mBinding!!.root

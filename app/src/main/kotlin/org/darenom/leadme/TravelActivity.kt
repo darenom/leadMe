@@ -111,6 +111,12 @@ class TravelActivity : AppCompatActivity(),
 
             }
         })
+
+        svm!!.travelRun.observe(this, Observer {
+            if (null != it){
+                sliding_panel.panelState = SlidingUpPanelLayout.PanelState.COLLAPSED
+            }
+        })
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -458,5 +464,9 @@ class TravelActivity : AppCompatActivity(),
 
             svm!!.update(svm!!.travelSet.value!!)
         }
+    }
+
+    fun setRun(name: String, iter: Int) {
+        svm!!.getStampRecords(name, iter)
     }
 }

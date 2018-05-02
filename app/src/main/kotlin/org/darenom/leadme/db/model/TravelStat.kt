@@ -6,6 +6,7 @@ package org.darenom.leadme.db.model
 
 interface TravelStat {
     val name: String
+    val iter: Int
     val timestart: String
     val timeend: String
     val timed: String

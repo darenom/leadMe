@@ -35,6 +35,7 @@ import org.darenom.leadme.service.TravelService
 import org.darenom.leadme.service.TravelService.Companion.travel
 import org.darenom.leadme.service.TravelService.Companion.travelling
 import org.darenom.leadme.TravelActivity.Companion.CHECK_NET_ACCESS
+import org.darenom.leadme.db.entities.TravelStampEntity
 import org.darenom.leadme.ui.viewmodel.SharedViewModel
 import java.util.*
 
@@ -150,6 +151,17 @@ class TravelMapFragment : Fragment(), OnMapReadyCallback,
                     drawSet(it)     // otherwise draw from input
                 }
                 activity!!.invalidateOptionsMenu()
+            }
+        })
+
+        svm!!.travelRun.observe(this, Observer { it ->
+            if (null != it){
+                if (!processing) { // long run op, fool
+                    mBinding!!.showProgress = true
+                    processing = true
+                    drawTravel(travel.value!!)
+                    drawRun(it)
+                }
             }
         })
 
@@ -386,6 +398,10 @@ class TravelMapFragment : Fragment(), OnMapReadyCallback,
                 }
             }
         }
+    }
+
+    private fun drawRun(it: List<LatLng>) {
+        gm!!.addPolyline(PolylineOptions().width(3f).color(R.color.colorAccent).addAll(it))
     }
 
     private fun zoomOnAll(list: ArrayList<MarkerOptions>) {

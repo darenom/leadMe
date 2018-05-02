@@ -18,7 +18,7 @@ data class TravelStatEntity(
         @ColumnInfo
         override var name: String = BuildConfig.TMP_NAME,
         @ColumnInfo
-        var iter: Int = 1,
+        override var iter: Int = 1,
         @ColumnInfo
         override var timestart: String = "",
         @ColumnInfo

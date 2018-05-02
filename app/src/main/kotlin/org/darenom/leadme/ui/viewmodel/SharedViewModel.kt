@@ -19,12 +19,14 @@ import org.darenom.leadme.BuildConfig
 import org.darenom.leadme.db.AppDatabase
 import org.darenom.leadme.db.DateConverter
 import org.darenom.leadme.db.entities.TravelSetEntity
+import org.darenom.leadme.db.entities.TravelStampEntity
 import org.darenom.leadme.db.entities.TravelStatEntity
 import org.darenom.leadme.model.Travel
 import org.darenom.leadme.service.TravelService.Companion.travel
 import java.io.*
 import java.nio.charset.StandardCharsets
 import java.util.*
+import kotlin.collections.ArrayList
 import kotlin.math.roundToInt
 
 
@@ -79,13 +81,16 @@ class SharedViewModel(app: Application) : AndroidViewModel(app) {
     }
     // endregion
 
+
+
     init {
 
-        settings = getApplication<Application>()
-                .getSharedPreferences(getApplication<Application>().packageName, 0)
+        database = getApplication<BaseApp>().database
 
-        database = (getApplication<Application>() as BaseApp).database
-        executors = (getApplication<Application>() as BaseApp).mAppExecutors
+        settings = getApplication<BaseApp>()
+                .getSharedPreferences(getApplication<BaseApp>().packageName, 0)
+
+        executors = getApplication<BaseApp>().mAppExecutors
 
         optCompass.value = settings!!.getBoolean(OPTIONS_COMPASS_KEY, false)
         tmode.value = settings!!.getInt(OPTION_MODE_KEY, 0)
@@ -294,7 +299,7 @@ class SharedViewModel(app: Application) : AndroidViewModel(app) {
         executors!!.diskIO().execute {
             var d = 0.0
             val tmpLoc = Location("tmp")
-            val u = database!!.travelStampDao().getByIter(t.name, t.iter)
+            val u = database!!.travelStampDao().get(t.name, t.iter)
             t.timestart = DateConverter.toDate(u[0].time!!).toString().split("GMT")[0]
             t.timeend = DateConverter.toDate(u[u.lastIndex].time!!).toString().split("GMT")[0]
             t.timed = DateConverter.compoundDuration((u[u.lastIndex].time!! - u[0].time!!) / 1000)
@@ -327,16 +332,29 @@ class SharedViewModel(app: Application) : AndroidViewModel(app) {
             database!!.travelStampDao().updateSet(name)
         }
     }
+
+    val travelRun = MutableLiveData<List<com.google.android.gms.maps.model.LatLng>>()
+
+    internal fun getStampRecords(name: String, iter: Int){
+        val list = ArrayList<com.google.android.gms.maps.model.LatLng>()
+        getApplication<BaseApp>().mAppExecutors!!.diskIO().execute {
+            getApplication<BaseApp>().database.travelStampDao()
+                    .get(name, iter).forEach {
+                        list.add(com.google.android.gms.maps.model.LatLng(it.lat!!, it.lng!!)) }
+            travelRun.postValue(list.toList())
+        }
+    }
+
     // endregion
 
     // region Files
     fun delete(name: String) {
         executors!!.diskIO().execute {
-            val file1 = File("${getApplication<Application>().filesDir.absolutePath}/$name${BuildConfig.RTE}")
+            val file1 = File("${getApplication<BaseApp>().filesDir.absolutePath}/$name${BuildConfig.RTE}")
             if (file1.exists())
                 file1.delete()
 
-            val file2 = File("${getApplication<Application>().filesDir.absolutePath}/$name${BuildConfig.PNG}")
+            val file2 = File("${getApplication<BaseApp>().filesDir.absolutePath}/$name${BuildConfig.PNG}")
             if (file2.exists())
                 file2.delete()
         }
@@ -344,7 +362,7 @@ class SharedViewModel(app: Application) : AndroidViewModel(app) {
 
     fun write(bmp: Bitmap) {
         executors!!.diskIO().execute({
-            val file = File("${getApplication<Application>().filesDir.absolutePath}/${travel.value!!.name}${BuildConfig.PNG}")
+            val file = File("${getApplication<BaseApp>().filesDir.absolutePath}/${travel.value!!.name}${BuildConfig.PNG}")
             // avoid unnecessary
             if (!file.exists()) {
                 val out: FileOutputStream
@@ -363,7 +381,7 @@ class SharedViewModel(app: Application) : AndroidViewModel(app) {
 
     fun write(travel: Travel) {
         executors!!.diskIO().execute({
-            val file = File("${getApplication<Application>().filesDir.absolutePath}/${travel.name}${BuildConfig.RTE}")
+            val file = File("${getApplication<BaseApp>().filesDir.absolutePath}/${travel.name}${BuildConfig.RTE}")
             // avoid unnecessary
             if (!file.exists()) {
                 val g = Gson()
@@ -392,7 +410,7 @@ class SharedViewModel(app: Application) : AndroidViewModel(app) {
             val inputStreamReader: InputStreamReader
             val bufferedReader: BufferedReader
             try {
-                inputStream = getApplication<Application>().openFileInput("$name${BuildConfig.RTE}")
+                inputStream = getApplication<BaseApp>().openFileInput("$name${BuildConfig.RTE}")
                 inputStreamReader = InputStreamReader(inputStream, StandardCharsets.UTF_8)
                 bufferedReader = BufferedReader(inputStreamReader)
                 val sb = StringBuilder()
@@ -433,7 +451,7 @@ class SharedViewModel(app: Application) : AndroidViewModel(app) {
         val out = arrayOf("", "")
         val addresses: List<Address>
         try {
-            val geocoder = Geocoder(getApplication<Application>().applicationContext, Locale.getDefault())
+            val geocoder = Geocoder(getApplication<BaseApp>().applicationContext, Locale.getDefault())
             addresses = geocoder.getFromLocationName(value, 3)
             if (addresses.isEmpty() || addresses[0].getAddressLine(0).isEmpty()) {
                 return out
@@ -457,7 +475,7 @@ class SharedViewModel(app: Application) : AndroidViewModel(app) {
     fun getAddress(lat: Double, lng: Double): String {
         var str = ""
         try {
-            val geocoder = Geocoder(getApplication<Application>().applicationContext, Locale.getDefault())
+            val geocoder = Geocoder(getApplication<BaseApp>().applicationContext, Locale.getDefault())
             val addresses = geocoder.getFromLocation(lat, lng, 1)
             if (addresses.isNotEmpty()) {
                 if (addresses[0].maxAddressLineIndex >= 0) {

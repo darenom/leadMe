@@ -25,7 +25,7 @@ interface TravelStampDao {
     //fun getNames(): List<TravelStamp>
 
     @Query("SELECT * FROM TravelStampEntity WHERE name LIKE :name AND  iter = :iter")
-    fun getByIter(name: String, iter: Int): List<TravelStampEntity>
+    fun get(name: String, iter: Int): List<TravelStampEntity>
 
     @Query("DELETE FROM TravelStampEntity WHERE name LIKE :name")
     fun wipe(name: String)

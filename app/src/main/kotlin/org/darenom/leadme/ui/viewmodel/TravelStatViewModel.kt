@@ -1,12 +1,10 @@
 package org.darenom.leadme.ui.viewmodel
 
 import android.app.Application
-import android.arch.lifecycle.AndroidViewModel
-import android.arch.lifecycle.MediatorLiveData
-import android.arch.lifecycle.ViewModel
-import android.arch.lifecycle.ViewModelProvider
+import android.arch.lifecycle.*
 import org.darenom.leadme.BaseApp
 import org.darenom.leadme.db.AppDatabase
+import org.darenom.leadme.db.entities.TravelStampEntity
 import org.darenom.leadme.db.entities.TravelStatEntity
 
 /**
@@ -24,6 +22,7 @@ class TravelStatViewModel(application: Application, database: AppDatabase, name:
                 database.travelStatDao().getByName(name),
                 observableTravelStat::setValue)
     }
+
 
     class Factory(private val mApplication: Application, private val name: String)
         : ViewModelProvider.NewInstanceFactory() {
