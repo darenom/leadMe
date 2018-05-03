@@ -2,6 +2,7 @@ package org.darenom.leadme.service
 
 import android.app.Service
 import android.arch.lifecycle.MutableLiveData
+import android.arch.lifecycle.Observer
 import android.content.Context
 import android.content.Intent
 import android.hardware.Sensor
@@ -46,6 +47,7 @@ class TravelService : Service(),
     private val cTAG = "TravelService"
     private var travelLocationManager: TravelLocationManager? = null
     private var tts: TTS? = null
+
 
 
     // region Service lifecycle
@@ -250,21 +252,23 @@ class TravelService : Service(),
         var uId = ""
         var hasToSay = false
 
-        val ts = TravelSegment(travel.value!!)
-        val status = ts.computeSegment(location)
+
+        val status = ts!!.computeSegment(location)
 
         // draw support on map if hasChanged
-        if (ts.closest > 0 && ts.closest < travel.value!!.points!!.size - 1) {
+        if (ts!!.closest > 0 && ts!!.closest < travel.value!!.points!!.size - 1) {
             if (null == tmpTs) {
+                // first
                 val intent = Intent(SEGMENT_CHANGED)
-                intent.putExtra(SEGMENT_LENGTH, ts.length)
-                intent.putParcelableArrayListExtra(SEGMENT_SIDES, ts.latlngs)
+                intent.putExtra(SEGMENT_LENGTH, ts!!.length)
+                intent.putParcelableArrayListExtra(SEGMENT_SIDES, ts!!.latlngs)
                 LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(intent)
             } else {
-                if (!tmpTs!!.index.contentEquals(ts.index)) {
+                // has changed
+                if (!tmpTs!!.index.contentEquals(ts!!.index)) {
                     val intent = Intent(SEGMENT_CHANGED)
-                    intent.putExtra(SEGMENT_LENGTH, ts.length)
-                    intent.putParcelableArrayListExtra(SEGMENT_SIDES, ts.latlngs)
+                    intent.putExtra(SEGMENT_LENGTH, ts!!.length)
+                    intent.putParcelableArrayListExtra(SEGMENT_SIDES, ts!!.latlngs)
                     LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(intent)
                 }
             }
@@ -274,8 +278,8 @@ class TravelService : Service(),
         when (status) {
             TravelSegment.ON_THE_WAY -> {
 
-                txt = travel.value!!.infos!![ts.index[0]]
-                uId = ts.index[0].toString()
+                txt = travel.value!!.infos!![ts!!.index[0]]
+                uId = ts!!.index[0].toString()
 
                 hasToSay = if (oldStatus == TravelSegment.OUT_OF_BOUNDS) {
                     messageWayBack()
@@ -301,9 +305,9 @@ class TravelService : Service(),
                 if (oldStatus == TravelSegment.OUT_OF_BOUNDS) {
                     messageWayBack()
                 }
-                //txt = travel.value!!.infos!![travel.value!!.closest]
-                //uId = travel.value!!.closest.toString()
-                //hasToSay = true
+                txt = travel.value!!.infos!![ts!!.closest]
+                uId = ts!!.closest.toString()
+                hasToSay = true
 
             }
             TravelSegment.OUT_OF_BOUNDS -> {
@@ -315,10 +319,10 @@ class TravelService : Service(),
                     enableCompass(true, 1)
                     val intent = Intent(DIRECTION_CHANGED)
                     intent.putExtra(DIRECTION_CHANGED, computeDirection(location,
-                            if (ts.index[1] == -1)
-                                ts.index[0]
+                            if (ts!!.index[1] == -1)
+                                ts!!.index[0]
                             else
-                                ts.index[1])
+                                ts!!.index[1])
                     )
                     LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(intent)
                 }
@@ -362,7 +366,8 @@ class TravelService : Service(),
 
         var here: Location? = null
         var travelling: Boolean = false
-        var travel = object : MutableLiveData<Travel>() {}
+        val travel = object : MutableLiveData<Travel>() {}
+        var ts: TravelSegment? = null
 
         const val COMPASS_UPDATE_INTERVAL: Long = 3000 // ms
         const val ORIENTATION_CHANGED = "OrientationChanged"

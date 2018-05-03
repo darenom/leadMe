@@ -27,6 +27,7 @@ import kotlinx.android.synthetic.main.activity_splash.*
 import kotlinx.android.synthetic.main.activity_travel.*
 import org.darenom.leadme.db.DateConverter
 import org.darenom.leadme.model.Travel
+import org.darenom.leadme.model.TravelSegment
 import org.darenom.leadme.service.TravelService
 import org.darenom.leadme.service.TravelService.Companion.travel
 import org.darenom.leadme.service.TravelService.Companion.travelling
@@ -87,6 +88,7 @@ class TravelActivity : AppCompatActivity(),
 
         travel.observe(this, Observer { it ->
             if (null != it) {
+                TravelService.ts = TravelSegment(it)
                 if (it.name.contentEquals(BuildConfig.TMP_NAME)) {
                     svm!!.write(it)     // save tmp file only
                     supportActionBar?.setTitle(R.string.app_name)
@@ -95,6 +97,7 @@ class TravelActivity : AppCompatActivity(),
                 (panel as PanelFragment).setPanel(1)
                 fabState(0)
             } else {
+                TravelService.ts = null
                 supportActionBar?.setTitle(R.string.app_name)
                 (panel as PanelFragment).setPanel(0)
                 fabState(2)
