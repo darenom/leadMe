@@ -69,8 +69,10 @@ dependencies {
     kapt "android.arch.persistence.room:compiler:$rootProject.ext.roomVersion"
     //databinding
     kapt 'com.android.databinding:compiler:3.1.2'
-
+    // sliding panel
     implementation 'com.sothree.slidinguppanel:library:3.4.0'
+    // graphview
+    implementation 'com.jjoe64:graphview:4.2.2'
 
     //maps
     implementation 'com.google.android.gms:play-services-maps:11.8.0'

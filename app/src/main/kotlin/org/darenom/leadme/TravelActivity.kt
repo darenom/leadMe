@@ -92,11 +92,11 @@ class TravelActivity : AppCompatActivity(),
                     supportActionBar?.setTitle(R.string.app_name)
                 } else
                     supportActionBar?.title = it.name
-                (maker as PanelFragment).setPanel(1)
+                (panel as PanelFragment).setPanel(1)
                 fabState(0)
             } else {
                 supportActionBar?.setTitle(R.string.app_name)
-                (maker as PanelFragment).setPanel(0)
+                (panel as PanelFragment).setPanel(0)
                 fabState(2)
             }
             setFabVisiblity()
@@ -113,9 +113,13 @@ class TravelActivity : AppCompatActivity(),
         })
 
         svm!!.travelRun.observe(this, Observer {
-            if (null != it){
+            if (null != it)
                 sliding_panel.panelState = SlidingUpPanelLayout.PanelState.COLLAPSED
-            }
+        })
+
+        svm!!.travelAlt.observe(this, Observer {
+            if (null != it)
+                (panel as PanelFragment).statFragment!!.showGraph(it)
         })
     }
 
@@ -184,7 +188,7 @@ class TravelActivity : AppCompatActivity(),
 
             R.id.opt_clear -> {
                 svm!!.clear()
-                if ((maker as PanelFragment).current != 0) (maker as PanelFragment).setPanel(0)
+                if ((panel as PanelFragment).current != 0) (panel as PanelFragment).setPanel(0)
                 fabState(2)
                 setFabVisiblity()
             }
@@ -207,12 +211,12 @@ class TravelActivity : AppCompatActivity(),
         // do nothing
     }
 
-    override fun onPanelStateChanged(panel: View?, previousState: SlidingUpPanelLayout.PanelState?, newState: SlidingUpPanelLayout.PanelState?) {
+    override fun onPanelStateChanged(panelView: View?, previousState: SlidingUpPanelLayout.PanelState?, newState: SlidingUpPanelLayout.PanelState?) {
         if (!travelling)
             if (previousState == SlidingUpPanelLayout.PanelState.DRAGGING &&
                     newState == SlidingUpPanelLayout.PanelState.COLLAPSED) {
 
-                if (fab.tag == "2") (maker as PanelFragment).setPanel(0)
+                if (fab.tag == "2") (panel as PanelFragment).setPanel(0)
                 setFabVisiblity()
 
             } else if (previousState == SlidingUpPanelLayout.PanelState.DRAGGING &&
@@ -262,14 +266,14 @@ class TravelActivity : AppCompatActivity(),
             fab.visibility = View.GONE
             when (v.tag) {
                 "0" -> {
-                    (maker as PanelFragment).setPanel(0)
+                    (panel as PanelFragment).setPanel(0)
                     if (svm!!.name.value!!.contentEquals(BuildConfig.TMP_NAME) && null == travel.value)
                         fabState(2)
                     else
                         fabState(1)
                 }
                 "1" -> {
-                    (maker as PanelFragment).setPanel(1)
+                    (panel as PanelFragment).setPanel(1)
                     if (svm!!.name.value!!.contentEquals(BuildConfig.TMP_NAME) && null == travel.value)
                         fabState(2)
                     else
@@ -277,8 +281,8 @@ class TravelActivity : AppCompatActivity(),
 
                 }
                 "2" -> {
-                    if ((maker as PanelFragment).current != 2)
-                        (maker as PanelFragment).setPanel(2)
+                    if ((panel as PanelFragment).current != 2)
+                        (panel as PanelFragment).setPanel(2)
                 }
             }
             sliding_panel.panelState = SlidingUpPanelLayout.PanelState.EXPANDED

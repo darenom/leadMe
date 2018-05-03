@@ -43,7 +43,7 @@
             android:gravity="top" />
 
         <fragment
-            android:id="@+id/maker"
+            android:id="@+id/panel"
             android:name="org.darenom.leadme.ui.fragment.PanelFragment"
             android:layout_width="match_parent"
             android:layout_height="match_parent"

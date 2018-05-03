@@ -7,5 +7,5 @@ import org.darenom.leadme.db.model.TravelStat
  */
 
 interface TravelStatClickCallback {
-    fun onClick(stat: TravelStat)
+    fun onClick(travelStat: TravelStat)
 }

@@ -24,7 +24,7 @@ interface TravelStampDao {
     //@Query("SELECT DISTINCT name, iter FROM TravelStampEntity GROUP BY name, iter")
     //fun getNames(): List<TravelStamp>
 
-    @Query("SELECT * FROM TravelStampEntity WHERE name LIKE :name AND  iter = :iter")
+    @Query("SELECT * FROM TravelStampEntity WHERE name LIKE :name AND  iter = :iter GROUP BY time")
     fun get(name: String, iter: Int): List<TravelStampEntity>
 
     @Query("DELETE FROM TravelStampEntity WHERE name LIKE :name")

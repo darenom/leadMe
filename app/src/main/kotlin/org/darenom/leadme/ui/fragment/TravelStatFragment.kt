@@ -9,16 +9,19 @@ import android.support.v7.widget.LinearLayoutManager
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import com.jjoe64.graphview.series.DataPoint
+import com.jjoe64.graphview.series.LineGraphSeries
+import kotlinx.android.synthetic.main.fragment_travelstat.*
 import org.darenom.leadme.R
 import org.darenom.leadme.TravelActivity
 import org.darenom.leadme.databinding.FragmentTravelstatBinding
 import org.darenom.leadme.db.entities.TravelStatEntity
-import org.darenom.leadme.db.model.TravelSet
 import org.darenom.leadme.db.model.TravelStat
 import org.darenom.leadme.ui.adapter.TravelStatAdapter
-import org.darenom.leadme.ui.callback.TravelSetClickCallback
 import org.darenom.leadme.ui.callback.TravelStatClickCallback
 import org.darenom.leadme.ui.viewmodel.TravelStatViewModel
+import java.util.*
+
 
 /**
  * Created by admadmin on 18/03/2018.
@@ -26,7 +29,7 @@ import org.darenom.leadme.ui.viewmodel.TravelStatViewModel
 
 class TravelStatFragment : Fragment() {
 
-    private var mBinding: FragmentTravelstatBinding? = null
+    var mBinding: FragmentTravelstatBinding? = null
 
     private lateinit var mTravelStatAdapter: TravelStatAdapter
 
@@ -65,6 +68,25 @@ class TravelStatFragment : Fragment() {
         })
 
     }
+
+
+    fun showGraph(p: HashMap<Long, Double>?) {
+        graph.removeAllSeries()
+        val series = LineGraphSeries<DataPoint>()
+        for (z in 0 until p!!.entries.size - 1) {
+            series.appendData(
+                    DataPoint(
+                            z.toDouble(), //Date(p.keys.elementAt(z)),
+                            p.values.elementAt(z)
+                    ),
+                    true,
+                    p.entries.size)
+        }
+        // p!! .forEach { (t, u) -> series.appendData(DataPoint(Date(t), u), true, p.size) }
+        graph.addSeries(series)
+        mBinding!!.mSwitch = true
+    }
+
 
     companion object {
 

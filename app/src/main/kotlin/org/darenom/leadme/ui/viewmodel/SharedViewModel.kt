@@ -19,7 +19,6 @@ import org.darenom.leadme.BuildConfig
 import org.darenom.leadme.db.AppDatabase
 import org.darenom.leadme.db.DateConverter
 import org.darenom.leadme.db.entities.TravelSetEntity
-import org.darenom.leadme.db.entities.TravelStampEntity
 import org.darenom.leadme.db.entities.TravelStatEntity
 import org.darenom.leadme.model.Travel
 import org.darenom.leadme.service.TravelService.Companion.travel
@@ -27,6 +26,7 @@ import java.io.*
 import java.nio.charset.StandardCharsets
 import java.util.*
 import kotlin.collections.ArrayList
+import kotlin.collections.HashMap
 import kotlin.math.roundToInt
 
 
@@ -334,14 +334,18 @@ class SharedViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     val travelRun = MutableLiveData<List<com.google.android.gms.maps.model.LatLng>>()
+    val travelAlt = MutableLiveData<HashMap<Long, Double>>()
 
     internal fun getStampRecords(name: String, iter: Int){
-        val list = ArrayList<com.google.android.gms.maps.model.LatLng>()
+        val run = ArrayList<com.google.android.gms.maps.model.LatLng>()
+        val alt = HashMap<Long, Double>()
         getApplication<BaseApp>().mAppExecutors!!.diskIO().execute {
-            getApplication<BaseApp>().database.travelStampDao()
-                    .get(name, iter).forEach {
-                        list.add(com.google.android.gms.maps.model.LatLng(it.lat!!, it.lng!!)) }
-            travelRun.postValue(list.toList())
+            val t= getApplication<BaseApp>().database.travelStampDao().get(name, iter)
+                    t.forEach { it ->
+                        alt[it.time!!] = it.altitude!!
+                        run.add(com.google.android.gms.maps.model.LatLng(it.lat!!, it.lng!!)) }
+            travelRun.postValue(run.toList())
+            travelAlt.postValue(alt)
         }
     }
 

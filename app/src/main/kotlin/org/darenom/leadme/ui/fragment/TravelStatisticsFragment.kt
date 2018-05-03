@@ -18,7 +18,7 @@ class TravelStatisticsFragment : Fragment() {
 
     private lateinit var travelSetFragment: TravelSetFragment
 
-    private lateinit var travelStatFragment: TravelStatFragment
+    lateinit var travelStatFragment: TravelStatFragment
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -82,6 +82,10 @@ class TravelStatisticsFragment : Fragment() {
                             travelStatFragment, name).commit()
         }
 
+    }
+
+    fun showGraph(p: HashMap<Long, Double>? ) {
+        travelStatFragment.showGraph(p)
     }
 
     companion object {
