@@ -94,13 +94,13 @@ class TTS(var context: Context) :
                 false
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP -> {
                 val param = Bundle()
-                param.putInt(TextToSpeech.Engine.KEY_PARAM_STREAM, AudioManager.STREAM_NOTIFICATION)
+                param.putInt(TextToSpeech.Engine.KEY_PARAM_STREAM, AudioManager.STREAM_VOICE_CALL)
                 mTts!!.speak(toSay, TextToSpeech.QUEUE_FLUSH, param, uId) == TextToSpeech.SUCCESS
             }
 
             else -> {
                 val param = HashMap<String, String>()
-                param.put(TextToSpeech.Engine.KEY_PARAM_STREAM, AudioManager.STREAM_NOTIFICATION.toString())
+                param.put(TextToSpeech.Engine.KEY_PARAM_STREAM, AudioManager.STREAM_VOICE_CALL.toString())
                 mTts!!.speak(toSay, TextToSpeech.QUEUE_FLUSH, param) == TextToSpeech.SUCCESS
             }
 
