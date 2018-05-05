@@ -22,6 +22,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@color/colorPrimary"
+        android:layout_marginEnd="@dimen/m3"
         android:onClick="@{() ->  callback.onClick(travelSet)}">
         <!-- infos -->
         <LinearLayout
@@ -124,11 +125,6 @@
                 android:src="@{imgMode}"
                 tools:ignore="ContentDescription" />
 
-            <Spinner
-                android:id="@+id/spinnerMax"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:background="@drawable/drawable_spinner" />
         </LinearLayout>
 
 

@@ -47,17 +47,6 @@ class TravelSetFragment : Fragment() {
                                 context!!.resources.getStringArray(R.array.travel_mode_drw)[it.mode],
                                 "drawable",
                                 context!!.packageName))
-                if (it.max > 0) {
-                    spinnerMax.visibility = View.VISIBLE
-                    val sRouteSelectorAdapter = ArrayAdapter(
-                            context,
-                            android.R.layout.simple_spinner_item,
-                            Array(it.max, { i: Int -> i.toString() }))
-
-                    spinnerMax.adapter = sRouteSelectorAdapter
-                } else {
-                    spinnerMax.visibility = View.GONE
-                }
             }
         })
 
