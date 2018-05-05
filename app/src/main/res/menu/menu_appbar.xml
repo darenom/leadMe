@@ -20,14 +20,6 @@
         app:showAsAction="always" />
 
     <item
-        android:id="@+id/opt_compass"
-        android:icon="@drawable/ic_opt_compass"
-        android:orderInCategory="98"
-        android:title="@string/opt_compass"
-        android:visible="false"
-        app:showAsAction="always" />
-
-    <item
         android:id="@+id/opt_play_stop"
         android:icon="@drawable/ic_play"
         android:orderInCategory="97"

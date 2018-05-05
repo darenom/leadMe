@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <data>
 
@@ -18,23 +19,36 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
+        <View
+            android:layout_width="@dimen/compass_size"
+            android:layout_height="@dimen/compass_size"
+            android:id="@+id/compass"
+            android:onClick="compassToggle"
+            android:layout_alignParentEnd="true"
+            android:alpha=".72"
+            android:layout_marginTop="@dimen/compass_margin_top"
+            android:layout_marginEnd="@dimen/compass_margin_end"
+            android:background="@drawable/button_compass"/>
+
+
         <RelativeLayout
             visibleGone="@{showDirection}"
             android:layout_width="match_parent"
             android:layout_height="match_parent">
-        <ImageView
-            android:id="@+id/imageViewDirection"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
-            android:src="@drawable/ic_follow_24dp"
-            tools:ignore="ContentDescription" />
+
+            <ImageView
+                android:id="@+id/imageViewDirection"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:src="@drawable/ic_follow_24dp"
+                tools:ignore="ContentDescription" />
         </RelativeLayout>
 
         <RelativeLayout
+            visibleGone="@{showCompass}"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            visibleGone="@{showCompass}">
+            android:layout_height="match_parent">
 
             <ImageView
                 android:id="@+id/imageViewCompass"

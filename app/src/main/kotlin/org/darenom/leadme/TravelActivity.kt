@@ -25,6 +25,7 @@ import com.google.maps.model.TravelMode
 import com.sothree.slidinguppanel.SlidingUpPanelLayout
 import kotlinx.android.synthetic.main.activity_splash.*
 import kotlinx.android.synthetic.main.activity_travel.*
+import kotlinx.android.synthetic.main.layout_view_compass.*
 import org.darenom.leadme.db.DateConverter
 import org.darenom.leadme.model.Travel
 import org.darenom.leadme.model.TravelSegment
@@ -79,6 +80,8 @@ class TravelActivity : AppCompatActivity(),
 
         svm = ViewModelProviders.of(this).get(SharedViewModel::class.java)
         subscribeUI()
+
+        compass.visibility = if ((application as BaseApp).travelService!!.hasCompass) View.VISIBLE else View.GONE
 
         ttsChecker()
 
@@ -135,7 +138,6 @@ class TravelActivity : AppCompatActivity(),
     override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
         super.onPrepareOptionsMenu(menu)
 
-        val mnuCompass = menu?.findItem(R.id.opt_compass)
         val mnuClear = menu?.findItem(R.id.opt_clear)
         val mnuTravel = menu?.findItem(R.id.opt_play_stop)
         val mnuAskSave = menu?.findItem(R.id.opt_direction_save)
@@ -144,10 +146,6 @@ class TravelActivity : AppCompatActivity(),
             true ->  false
             else -> svm!!.canCancel
         }
-
-
-        mnuCompass?.isVisible = (application as BaseApp).travelService!!.hasCompass
-        mnuCompass?.isChecked = svm!!.optCompass.value!!
 
         mnuTravel?.isVisible = travel.value != null
         mnuTravel?.setIcon(
@@ -195,8 +193,6 @@ class TravelActivity : AppCompatActivity(),
                 fabState(2)
                 setFabVisiblity()
             }
-
-            R.id.opt_compass -> svm!!.optCompass.value = !svm!!.optCompass.value!!
 
             R.id.opt_play_stop -> startStopTravel()
 
@@ -475,5 +471,10 @@ class TravelActivity : AppCompatActivity(),
 
     fun setRun(name: String, iter: Int) {
         svm!!.getStampRecords(name, iter)
+    }
+
+    fun compassToggle(v: View){
+        if (v.id == R.id.compass)
+            svm!!.optCompass.value = !svm!!.optCompass.value!!
     }
 }

@@ -72,7 +72,6 @@ class TravelListFragment : Fragment() {
 
     override fun onPrepareOptionsMenu(menu: Menu?) {
         super.onPrepareOptionsMenu(menu)
-        menu?.findItem(R.id.opt_compass)?.isVisible = false
         menu?.findItem(R.id.opt_play_stop)?.isVisible = false
         menu?.findItem(R.id.opt_direction_save)?.isVisible = false
         menu?.findItem(R.id.opt_clear)?.isVisible = false

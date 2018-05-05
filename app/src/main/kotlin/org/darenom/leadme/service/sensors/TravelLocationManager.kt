@@ -30,7 +30,10 @@ internal constructor(private val context: Context, private val listener: Locatio
 
     override fun onLocationResult(p0: LocationResult?) {
         super.onLocationResult(p0)
-        listener.onLocationChanged(p0!!.locations[0])
+        if (p0!!.locations[0].hasAltitude())
+            if (p0.locations[0].altitude > 0)
+                if (p0.locations[0].accuracy < 70)
+                    listener.onLocationChanged(p0.locations[0])
     }
 
     // Features availability
@@ -52,8 +55,8 @@ internal constructor(private val context: Context, private val listener: Locatio
             if (enable) {
                 if (mode) {
                     locationRequest = LocationRequest().apply {
-                        interval = 10000
-                        fastestInterval = 5000
+                        interval = 36000
+                        fastestInterval = 12000
                         priority = LocationRequest.PRIORITY_HIGH_ACCURACY
                     }
                 } else {
