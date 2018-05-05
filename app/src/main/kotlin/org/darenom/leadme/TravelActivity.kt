@@ -81,8 +81,6 @@ class TravelActivity : AppCompatActivity(),
         svm = ViewModelProviders.of(this).get(SharedViewModel::class.java)
         subscribeUI()
 
-        compass.visibility = if ((application as BaseApp).travelService!!.hasCompass) View.VISIBLE else View.GONE
-
         ttsChecker()
 
     }

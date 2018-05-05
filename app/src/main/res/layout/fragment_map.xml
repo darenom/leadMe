@@ -5,6 +5,10 @@
     <data>
 
         <variable
+            name="hasCompass"
+            type="boolean" />
+
+        <variable
             name="showCompass"
             type="boolean" />
 
@@ -31,6 +35,7 @@
             layout="@layout/layout_view_compass"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            bind:hasCompass="@{hasCompass}"
             bind:showCompass="@{showCompass}"
             bind:showDirection="@{showDirection}" />
 

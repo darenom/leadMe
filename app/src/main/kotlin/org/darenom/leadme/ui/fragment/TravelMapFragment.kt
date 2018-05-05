@@ -98,6 +98,7 @@ class TravelMapFragment : Fragment(), OnMapReadyCallback,
                               savedInstanceState: Bundle?): View? {
         mBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_map, container, false)
         (childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment).getMapAsync(this)
+        mBinding!!.hasCompass = (activity!!.application as BaseApp).travelService!!.hasCompass
         return mBinding!!.root
     }
 
