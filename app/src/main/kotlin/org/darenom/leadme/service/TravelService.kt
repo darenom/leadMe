@@ -252,7 +252,6 @@ class TravelService : Service(),
         var uId = ""
         var hasToSay = false
 
-
         val status = ts!!.computeSegment(location)
 
         // draw support on map if hasChanged
@@ -273,7 +272,6 @@ class TravelService : Service(),
                 }
             }
         }
-        tmpTs = ts
 
         when (status) {
             TravelSegment.ON_THE_WAY -> {
@@ -281,15 +279,13 @@ class TravelService : Service(),
                 txt = travel.value!!.infos!![ts!!.index[0]]
                 uId = ts!!.index[0].toString()
 
-                hasToSay = if (oldStatus == TravelSegment.OUT_OF_BOUNDS) {
+                hasToSay = if (isFirstRound || oldStatus == TravelSegment.OUT_OF_BOUNDS) {
                     messageWayBack()
                     true
                 } else {
                     false
                 }
-                if (isFirstRound) {
-                    hasToSay = true
-                }
+
             }
             TravelSegment.ARRIVED -> {
 
@@ -307,7 +303,7 @@ class TravelService : Service(),
                 }
                 txt = travel.value!!.infos!![ts!!.closest]
                 uId = ts!!.closest.toString()
-                hasToSay = true
+                hasToSay = isFirstRound || tmpTs!!.closest != ts!!.closest
 
             }
             TravelSegment.OUT_OF_BOUNDS -> {
@@ -330,6 +326,7 @@ class TravelService : Service(),
         }
 
         oldStatus = status
+        tmpTs = ts
 
         if (BuildConfig.DEBUG) {
             Log.d(cTAG, String.format("Status is %d, was: %d --- say: %s, first loop: %s",
