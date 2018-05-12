@@ -70,7 +70,7 @@ class TravelActivity : AppCompatActivity(),
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        (application as BaseApp).mActivity?.loader?.progress = 40
+        (application as BaseApp).splash?.loader?.progress = 40
         setContentView(R.layout.activity_travel)
 
         setSupportActionBar(toolbar)

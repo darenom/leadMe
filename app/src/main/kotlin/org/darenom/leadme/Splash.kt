@@ -17,19 +17,12 @@ class Splash : AppCompatActivity() {
     override fun onCreate(@Nullable savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_splash)
-        if (null == (application as BaseApp).mActivity)
-            (application as BaseApp).mActivity = this
+        if (null == (application as BaseApp).splash)
+            (application as BaseApp).splash = this
         else {
             (application as BaseApp).moveOn()
             finish()
         }
 
-    }
-
-    private fun runAnimation() {
-        val a = AnimationUtils.loadAnimation(this@Splash, R.anim.scale)
-        a.reset()
-        text.clearAnimation()
-        text.startAnimation(a)
     }
 }

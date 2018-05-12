@@ -27,7 +27,7 @@ import kotlinx.android.synthetic.main.activity_splash.*
 
 class BaseApp : Application(), GoogleApiClient.OnConnectionFailedListener, GoogleApiClient.ConnectionCallbacks {
 
-    var mActivity: AppCompatActivity? = null
+    var splash: Splash? = null
     var mAppExecutors: AppExecutors? = null
     val isNetworkAvailable: Boolean
         get() {
@@ -56,7 +56,7 @@ class BaseApp : Application(), GoogleApiClient.OnConnectionFailedListener, Googl
     }
 
     fun moveOn() {
-        mActivity?.loader?.progress = 30
+        splash?.loader?.progress = 30
         startActivity(Intent(applicationContext, TravelActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
     }
 
@@ -67,6 +67,11 @@ class BaseApp : Application(), GoogleApiClient.OnConnectionFailedListener, Googl
 
         mAppExecutors = AppExecutors()
 
+        connectToGGAPI()
+
+    }
+
+    private fun connectToGGAPI(){
         if (mGoogleApiClient == null) {
             mGoogleApiClient = GoogleApiClient.Builder(applicationContext)
                     .addConnectionCallbacks(this)
@@ -74,8 +79,10 @@ class BaseApp : Application(), GoogleApiClient.OnConnectionFailedListener, Googl
                     .addApi(LocationServices.API)
                     .build()
         }
-        mGoogleApiClient!!.connect()
-
+        if (mGoogleApiClient!!.isConnected || mGoogleApiClient!!.isConnecting)
+            1
+        else
+            mGoogleApiClient!!.connect()
     }
 
     override fun onTerminate() {
@@ -95,7 +102,7 @@ class BaseApp : Application(), GoogleApiClient.OnConnectionFailedListener, Googl
     }
 
     override fun onConnected(@Nullable bundle: Bundle?) {
-        mActivity?.loader?.progress = 20
+        splash?.loader?.progress = 20
         bindService(Intent(this, TravelService::class.java),
                 travelCnx, Context.BIND_AUTO_CREATE)
     }

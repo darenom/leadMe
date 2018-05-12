@@ -204,8 +204,8 @@ class TravelMapFragment : Fragment(), OnMapReadyCallback,
             drawSet(svm!!.travelSet.value!!)
         }
 
-        (activity!!.application as BaseApp).mActivity?.loader?.progress = 100
-        (activity!!.application as BaseApp).mActivity?.finish()
+        (activity!!.application as BaseApp).splash?.loader?.progress = 100
+        (activity!!.application as BaseApp).splash?.finish()
     }
 
     override fun onMapClick(it: LatLng) {
