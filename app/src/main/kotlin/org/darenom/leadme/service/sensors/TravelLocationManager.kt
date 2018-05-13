@@ -23,8 +23,11 @@ import com.google.android.gms.tasks.Task
 internal class TravelLocationManager(private val context: Context, private val callback: Callback)
     : LocationCallback() {
 
-    private var fusedLocationClient: FusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(context)
-    private var mLocationManager: LocationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+    private var fusedLocationClient: FusedLocationProviderClient =
+            LocationServices.getFusedLocationProviderClient(context)
+
+    private var mLocationManager: LocationManager =
+            context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
 
     internal fun canLocate(): Boolean =
             mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) ||
@@ -107,6 +110,13 @@ internal class TravelLocationManager(private val context: Context, private val c
                     callback.onLocationChanged(p0.locations[0])
     }
 
+    override fun onLocationAvailability(p0: LocationAvailability?) {
+        super.onLocationAvailability(p0)
+        if (null != p0)
+            if (!p0.isLocationAvailable)
+                if (!canLocate() || !mayLocate())
+                    stopLocationUpdates()
+    }
 
     interface Callback {
         fun onStatusChanged(status: Int)
