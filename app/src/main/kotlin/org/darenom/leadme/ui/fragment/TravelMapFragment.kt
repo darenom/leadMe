@@ -15,7 +15,10 @@ import android.provider.Settings
 import android.support.v4.app.Fragment
 import android.support.v4.content.ContextCompat
 import android.support.v4.content.LocalBroadcastManager
-import android.view.*
+import android.view.LayoutInflater
+import android.view.MenuItem
+import android.view.View
+import android.view.ViewGroup
 import android.widget.Toast
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -28,14 +31,12 @@ import kotlinx.android.synthetic.main.layout_view_compass.*
 import org.darenom.leadme.BaseApp
 import org.darenom.leadme.R
 import org.darenom.leadme.TravelActivity
+import org.darenom.leadme.TravelActivity.Companion.CHECK_NET_ACCESS
 import org.darenom.leadme.databinding.FragmentMapBinding
 import org.darenom.leadme.db.entities.TravelSetEntity
 import org.darenom.leadme.model.Travel
 import org.darenom.leadme.service.TravelService
 import org.darenom.leadme.service.TravelService.Companion.travel
-import org.darenom.leadme.service.TravelService.Companion.travelling
-import org.darenom.leadme.TravelActivity.Companion.CHECK_NET_ACCESS
-import org.darenom.leadme.db.entities.TravelStampEntity
 import org.darenom.leadme.ui.viewmodel.SharedViewModel
 import java.util.*
 
@@ -47,7 +48,7 @@ class TravelMapFragment : Fragment(), OnMapReadyCallback,
         GoogleMap.OnMapClickListener, GoogleMap.OnMarkerClickListener,
         GoogleMap.OnMarkerDragListener, GoogleMap.OnInfoWindowClickListener {
 
-    internal var mBinding: FragmentMapBinding? = null
+    internal lateinit var mBinding: FragmentMapBinding
 
     private var svm: SharedViewModel? = null
 
@@ -62,21 +63,22 @@ class TravelMapFragment : Fragment(), OnMapReadyCallback,
     private val mMapReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             when (intent.action) {
+
             // point to north
                 TravelService.ORIENTATION_CHANGED -> {
                     layout_compass?.onOrientationChanged(intent.getFloatArrayExtra(TravelService.ORIENTATION_CHANGED))
                 }
             // point to closest
                 TravelService.DIRECTION_CHANGED -> {
-                    mBinding?.showDirection = true
+                    mBinding.showDirection = true
                     layout_compass?.onDirectionChanged(intent.getFloatExtra(TravelService.DIRECTION_CHANGED, 0f))
                 }
                 TravelService.ARRIVED -> {
-                    if (TravelService.travelling)
-                        (activity!! as TravelActivity).startStopTravel()
+                    mBinding.showDirection = false
+                    (activity!! as TravelActivity).stopTravel()
                 }
                 TravelService.MY_WAY_BACK -> {
-                    mBinding?.showDirection = false
+                    mBinding.showDirection = false
                 }
                 TravelService.SEGMENT_CHANGED -> {
                     val lats = intent.getParcelableArrayListExtra<com.google.android.gms.maps.model.LatLng>(TravelService.SEGMENT_SIDES)
@@ -98,12 +100,12 @@ class TravelMapFragment : Fragment(), OnMapReadyCallback,
                               savedInstanceState: Bundle?): View? {
         mBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_map, container, false)
         (childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment).getMapAsync(this)
-        mBinding!!.hasCompass = (activity!!.application as BaseApp).travelService!!.hasCompass
-        return mBinding!!.root
+        return mBinding.root
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
+        mBinding.hasCompass = (activity!!.application as BaseApp).travelService!!.hasCompass
         subscribeUI()
     }
 
@@ -126,7 +128,7 @@ class TravelMapFragment : Fragment(), OnMapReadyCallback,
         super.onOptionsItemSelected(item)
         when (item.itemId) {
             R.id.opt_clear -> infoWindowId = ""
-            R.id.opt_play_stop -> if (!TravelService.travelling) mBinding!!.showDirection = false
+            R.id.opt_play_stop -> mBinding.showDirection = false
         }
         return false
     }
@@ -141,7 +143,7 @@ class TravelMapFragment : Fragment(), OnMapReadyCallback,
 
         svm!!.optCompass.observe(this, Observer { it ->
             if (null != it) {
-                mBinding!!.showCompass = it
+                mBinding.showCompass = it
                 (activity!!.application as BaseApp).travelService?.enableCompass(it, 0)
             }
         })
@@ -156,9 +158,9 @@ class TravelMapFragment : Fragment(), OnMapReadyCallback,
         })
 
         svm!!.travelRun.observe(this, Observer { it ->
-            if (null != it){
+            if (null != it) {
                 if (!processing) { // long run op, fool
-                    mBinding!!.showProgress = true
+                    mBinding.showProgress = true
                     processing = true
                     drawTravel(travel.value!!)
                     drawRun(it)
@@ -169,7 +171,7 @@ class TravelMapFragment : Fragment(), OnMapReadyCallback,
         travel.observe(this, Observer { it ->
             if (null != it) {
                 if (!processing) { // long run op, fool
-                    mBinding!!.showProgress = true
+                    mBinding.showProgress = true
                     processing = true
                     drawTravel(it)
                 }
@@ -394,7 +396,7 @@ class TravelMapFragment : Fragment(), OnMapReadyCallback,
                         gm!!.addPolyline(PolylineOptions().width(3f).color(R.color.colorPrimary)
                                 .addAll(PolyUtil.decode(travel.lines!![index])))
                     }
-                    if (!travelling)
+                    if (TravelService.locationStatus.value!! < 1)
                         zoomOnAll(travel.markerList)
                 }
             }
@@ -416,20 +418,21 @@ class TravelMapFragment : Fragment(), OnMapReadyCallback,
                 gm!!.animateCamera(cu, object : GoogleMap.CancelableCallback {
                     override fun onFinish() {   // on finish save snapshot
                         //gm!!.snapshot { svm!!.write(it) }
-                        mBinding!!.showProgress = false
+                        mBinding.showProgress = false
                         processing = false
                     }
+
                     override fun onCancel() {
-                        mBinding!!.showProgress = false
+                        mBinding.showProgress = false
                         processing = false
                     }
                 })
             } else {
-                mBinding!!.showProgress = false
+                mBinding.showProgress = false
                 processing = false
             }
         } else {
-            mBinding!!.showProgress = false
+            mBinding.showProgress = false
             processing = false
         }
     }
