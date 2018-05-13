@@ -302,7 +302,7 @@ class SharedViewModel(app: Application) : AndroidViewModel(app) {
             val u = database!!.travelStampDao().get(t.name, t.iter)
             t.timestart = DateConverter.toDate(u[0].time!!).toString().split("GMT")[0]
             t.timeend = DateConverter.toDate(u[u.lastIndex].time!!).toString().split("GMT")[0]
-            t.timed = DateConverter.compoundDuration((u[u.lastIndex].time!! - u[0].time!!) / 1000)
+            t.timed = DateConverter.compoundDuration((u[u.lastIndex].time!! - u[0].time!!) / 1000L)
             u.forEachIndexed { index, it ->
                 if (index > 0) {
                     val p = Location("po")

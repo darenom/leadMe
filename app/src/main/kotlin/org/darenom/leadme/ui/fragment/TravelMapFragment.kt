@@ -63,8 +63,6 @@ class TravelMapFragment : Fragment(), OnMapReadyCallback,
 
     private var gm: GoogleMap? = null
 
-    private var subscribed: Boolean = false
-
     private var processing: Boolean = false
 
     private var infoWindowId: String = ""
@@ -72,7 +70,6 @@ class TravelMapFragment : Fragment(), OnMapReadyCallback,
     private val mMapReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             when (intent.action) {
-
                 TravelService.MISS_FEAT -> {
                     if (travelling)
                         (activity!!.application as BaseApp).travelService!!.locate(false)
@@ -211,7 +208,7 @@ class TravelMapFragment : Fragment(), OnMapReadyCallback,
             }
             activity!!.invalidateOptionsMenu()
         })
-        subscribed = true
+
     }
 
     // region Listeners
@@ -240,6 +237,7 @@ class TravelMapFragment : Fragment(), OnMapReadyCallback,
         gm!!.setOnMyLocationButtonClickListener(this)
 
         gm!!.uiSettings.isMapToolbarEnabled = false
+        gm!!.uiSettings.isMyLocationButtonEnabled = true
 
         // observer may occur before map is ready so...
         if (null != travel.value) {
@@ -261,8 +259,6 @@ class TravelMapFragment : Fragment(), OnMapReadyCallback,
                 gm!!.isMyLocationEnabled = true
         } else
             activity!!.startActivityForResult(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS), CHECK_MAP)
-
-        gm!!.uiSettings.isMyLocationButtonEnabled = true
     }
 
     override fun onMapClick(it: LatLng) {
