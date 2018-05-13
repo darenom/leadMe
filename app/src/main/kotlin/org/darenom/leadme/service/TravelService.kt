@@ -1,19 +1,23 @@
 package org.darenom.leadme.service
 
+import android.Manifest
 import android.app.Service
 import android.arch.lifecycle.MutableLiveData
 import android.arch.lifecycle.Observer
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.hardware.Sensor
 import android.hardware.SensorManager
 import android.location.Location
 import android.location.LocationListener
+import android.location.LocationManager
 import android.location.LocationProvider
 import android.os.Binder
 import android.os.Bundle
 import android.os.Handler
 import android.os.IBinder
+import android.support.v4.content.ContextCompat
 import android.support.v4.content.LocalBroadcastManager
 import android.util.Log
 import org.darenom.leadme.BaseApp
@@ -30,25 +34,13 @@ import org.darenom.leadme.service.sensors.TravelLocationManager
  * Created by adm on 25/10/2017.
  */
 
-class TravelService : Service(),
-        LocationListener {
+class TravelService : Service(), TravelLocationManager.Callback {
 
+    private val binder = TravelServiceBinder()
     inner class TravelServiceBinder : Binder() {
         val service: TravelService
             get() = this@TravelService
     }
-
-    private val binder = TravelServiceBinder()
-
-    var hasCompass: Boolean = false
-    var hasPos: Boolean = false
-        get() = travelLocationManager?.canLocate()!! && travelLocationManager?.mayLocate()!!
-
-    private val cTAG = "TravelService"
-    private var travelLocationManager: TravelLocationManager? = null
-    private var tts: TTS? = null
-
-
 
     // region Service lifecycle
     override fun onCreate() {
@@ -69,6 +61,7 @@ class TravelService : Service(),
             travelCompass = TravelCompassManager(this)
         }
         travelLocationManager = TravelLocationManager(this, this)
+
     }
 
     override fun onBind(intent: Intent): IBinder = binder
@@ -76,7 +69,7 @@ class TravelService : Service(),
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
         if (BuildConfig.DEBUG)
-            Log.d(cTAG, "TravelService Started : $startId")
+            Log.d(this.javaClass.simpleName, "TravelService Started : $startId")
 
         locate(true)
 
@@ -97,60 +90,13 @@ class TravelService : Service(),
         locate(false)
 
         if (BuildConfig.DEBUG)
-            Log.d(cTAG, "TravelService Destroyed")
+            Log.d(this.javaClass.simpleName, "TravelService Destroyed")
         super.onDestroy()
     }
     //endregion
 
-    // region Location
-    private fun locate(b: Boolean) {
-        if (b)
-            travelLocationManager?.locate(true, false)
-        else
-            travelLocationManager?.locate(false, false)
-    }
-
-    override fun onStatusChanged(s: String, i: Int, bundle: Bundle) {
-        Log.e(cTAG, "onStatusChanged : $s, ${when (i) {
-            LocationProvider.OUT_OF_SERVICE -> "out of service"
-            LocationProvider.AVAILABLE -> "service available"
-            LocationProvider.TEMPORARILY_UNAVAILABLE -> "temporarily unavailable"
-            else -> i.toString()
-        }}")
-    }
-
-    override fun onProviderEnabled(s: String) {
-        Log.e(cTAG, "onProviderEnabled : $s")
-
-    }
-
-    override fun onProviderDisabled(s: String) {
-        Log.e(cTAG, "onProviderDisabled : $s")
-
-    }
-
-    override fun onLocationChanged(location: Location?) {
-        if (null != location) {
-            // update position
-            here = location
-            // if travelling
-            if (travelling && travel.value!!.points!!.isNotEmpty()) {
-                // stamp bdd
-                (application as BaseApp).mAppExecutors!!.diskIO().execute {
-                    (application as BaseApp).database.travelStampDao().insert(TravelStampEntity(
-                            travel.value!!.name, iter, location.time, location.latitude, location.longitude,
-                            location.accuracy, location.bearing, location.provider, location.altitude,
-                            location.toString()))
-                }
-                // provide info
-                computeDirections(location)
-            }
-        }
-    }
-    // endregion
-
     // region Compass
-
+    var hasCompass: Boolean = false
     private var oCompass: Boolean = false // orientation request status
     private var dCompass: Boolean = false // direction request status
     private var travelCompass: TravelCompassManager? = null
@@ -218,35 +164,87 @@ class TravelService : Service(),
 
     // endregion
 
-    // region Travel
+    // region Location
 
+    var hasPos: Boolean = false
+        get() = travelLocationManager!!.canLocate() && travelLocationManager!!.mayLocate()
+    private var travelLocationManager: TravelLocationManager? = null
+
+    internal fun locate(b: Boolean) {
+        if (b)
+            travelLocationManager?.locate(true, false)
+        else
+            travelLocationManager?.locate(false, false)
+    }
+
+    override fun onLocationChanged(location: Location) {
+        // update position
+        here = location
+        // if travelling
+        if (travelling && travel.value!!.points!!.isNotEmpty()) {
+            // stamp bdd
+            (application as BaseApp).mAppExecutors!!.diskIO().execute {
+                (application as BaseApp).database.travelStampDao().insert(TravelStampEntity(
+                        travel.value!!.name, iter, location.time, location.latitude, location.longitude,
+                        location.accuracy, location.bearing, location.provider, location.altitude,
+                        location.toString()))
+            }
+            // provide info
+            computeDirections(location)
+        }
+    }
+
+    override fun onStatusChanged(status: Int) {
+        when (status){
+            -5 -> {LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(Intent(MISS_PERM))}
+            -4 -> {LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(Intent(MISS_FEAT))}
+            -3 -> {}
+            -2 -> {}
+            -1 -> {
+                travelling = false
+                isFirstRound = false
+                oldStatus = -1
+                tmpTs = null
+                tts?.off()
+                enableCompass(false, 1)
+                LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(Intent(REFRESH_UI))
+            }
+            0  -> {
+                travelling = false
+                isFirstRound = false
+                oldStatus = -1
+                tmpTs = null
+                tts?.off()
+                enableCompass(false, 1)
+                LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(Intent(REFRESH_UI))
+            }
+            1  ->{
+                isFirstRound = true
+                travelling = true
+                oldStatus = -1
+                tts?.on()
+                LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(Intent(REFRESH_UI))
+            }
+        }
+    }
+    // endregion
+
+    // region Travel
+    fun startTTS() {
+        tts = TTS(this)
+    }
+    fun startMotion(iter: Int) {
+        this.iter = iter
+        travelLocationManager!!.locate(true, true)
+    }
+    fun stopMotion() {
+        travelLocationManager!!.locate(true, false)
+    }
+    private var tts: TTS? = null
     private var iter: Int? = null
     private var isFirstRound: Boolean = false
     private var oldStatus: Int = -1
     private var tmpTs: TravelSegment? = null
-
-    fun startMotion(iter: Int): Boolean {
-        this.iter = iter
-        if (travelLocationManager!!.locate(true, true)) {
-            isFirstRound = true
-            travelling = true
-            oldStatus = -1
-            tts?.on()
-            return true
-        }
-        return false
-    }
-
-    fun stopMotion() {
-        travelling = false
-        isFirstRound = false
-        oldStatus = -1
-        tmpTs = null
-        travelLocationManager!!.locate(true, false)
-        tts?.off()
-        enableCompass(false, 1)
-    }
-
     private fun computeDirections(location: Location) {
         var txt = ""
         var uId = ""
@@ -328,10 +326,16 @@ class TravelService : Service(),
         oldStatus = status
         tmpTs = ts
 
-        if (BuildConfig.DEBUG) {
-            Log.d(cTAG, String.format("Status is %d, was: %d --- say: %s, first loop: %s",
-                    status, oldStatus, hasToSay.toString(), isFirstRound.toString()))
-        }
+        if (BuildConfig.DEBUG)
+            Log.d(this.javaClass.simpleName,
+                    String.format(
+                            "Status is %d, was: %d --- say: %s, first loop: %s",
+                            status,
+                            oldStatus,
+                            hasToSay.toString(),
+                            isFirstRound.toString()
+                    )
+            )
 
         // Say something if needed
         if (null != tts) {
@@ -347,17 +351,11 @@ class TravelService : Service(),
         }
 
     }
-
     private fun messageWayBack() {
         enableCompass(false, 1)
         LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(Intent(MY_WAY_BACK))
     }
-
     // endregion
-
-    fun startTTS() {
-        tts = TTS(this)
-    }
 
     companion object {
 
@@ -374,5 +372,10 @@ class TravelService : Service(),
         const val SEGMENT_LENGTH = "SegmentLength"
         const val ARRIVED = "Arrived"
         const val MY_WAY_BACK = "WayBack"
+
+        const val MISS_FEAT = "MissingFeature"
+        const val MISS_PERM = "MissingPermission"
+        const val REFRESH_UI = "RefreshUI"
+
     }
 }

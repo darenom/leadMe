@@ -1,6 +1,7 @@
 package org.darenom.leadme.ui.fragment
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
 import android.content.BroadcastReceiver
@@ -12,6 +13,7 @@ import android.databinding.DataBindingUtil
 import android.graphics.Color
 import android.os.Bundle
 import android.provider.Settings
+import android.support.v4.app.ActivityCompat
 import android.support.v4.app.Fragment
 import android.support.v4.content.ContextCompat
 import android.support.v4.content.LocalBroadcastManager
@@ -29,14 +31,20 @@ import com.google.maps.android.PolyUtil
 import kotlinx.android.synthetic.main.activity_splash.*
 import kotlinx.android.synthetic.main.layout_view_compass.*
 import org.darenom.leadme.BaseApp
+import org.darenom.leadme.BuildConfig
 import org.darenom.leadme.R
 import org.darenom.leadme.TravelActivity
+import org.darenom.leadme.TravelActivity.Companion.CHECK_MAP
 import org.darenom.leadme.TravelActivity.Companion.CHECK_NET_ACCESS
+import org.darenom.leadme.TravelActivity.Companion.CHECK_START_MOTION
+import org.darenom.leadme.TravelActivity.Companion.PERM_MAP
 import org.darenom.leadme.databinding.FragmentMapBinding
 import org.darenom.leadme.db.entities.TravelSetEntity
 import org.darenom.leadme.model.Travel
 import org.darenom.leadme.service.TravelService
 import org.darenom.leadme.service.TravelService.Companion.travel
+import org.darenom.leadme.service.TravelService.Companion.travelling
+import org.darenom.leadme.ui.SaveTravelDialog
 import org.darenom.leadme.ui.viewmodel.SharedViewModel
 import java.util.*
 
@@ -45,6 +53,7 @@ import java.util.*
  */
 
 class TravelMapFragment : Fragment(), OnMapReadyCallback,
+        GoogleMap.OnMyLocationButtonClickListener,
         GoogleMap.OnMapClickListener, GoogleMap.OnMarkerClickListener,
         GoogleMap.OnMarkerDragListener, GoogleMap.OnInfoWindowClickListener {
 
@@ -64,6 +73,23 @@ class TravelMapFragment : Fragment(), OnMapReadyCallback,
         override fun onReceive(context: Context, intent: Intent) {
             when (intent.action) {
 
+                TravelService.MISS_FEAT -> {
+                    if (travelling)
+                        (activity!!.application as BaseApp).travelService!!.locate(false)
+                    else
+                        activity!!.startActivityForResult(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS), CHECK_START_MOTION)
+                }
+                TravelService.MISS_PERM -> {
+                    if (travelling)
+                        (activity!!.application as BaseApp).travelService!!.locate(false)
+                    else
+                        ActivityCompat.requestPermissions(activity!!,
+                                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                                TravelActivity.PERM_START_MOTION)
+                }
+                TravelService.REFRESH_UI -> {
+                    activity!!.invalidateOptionsMenu()
+                }
             // point to north
                 TravelService.ORIENTATION_CHANGED -> {
                     layout_compass?.onOrientationChanged(intent.getFloatArrayExtra(TravelService.ORIENTATION_CHANGED))
@@ -75,7 +101,7 @@ class TravelMapFragment : Fragment(), OnMapReadyCallback,
                 }
                 TravelService.ARRIVED -> {
                     mBinding.showDirection = false
-                    (activity!! as TravelActivity).stopTravel()
+                    (activity!! as TravelActivity).startStopTravel()
                 }
                 TravelService.MY_WAY_BACK -> {
                     mBinding.showDirection = false
@@ -105,7 +131,7 @@ class TravelMapFragment : Fragment(), OnMapReadyCallback,
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        mBinding.hasCompass = (activity!!.application as BaseApp).travelService!!.hasCompass
+        mBinding.hasCompass = (activity!!.application as BaseApp).travelService?.hasCompass ?: false
         subscribeUI()
     }
 
@@ -122,6 +148,13 @@ class TravelMapFragment : Fragment(), OnMapReadyCallback,
                 IntentFilter(TravelService.MY_WAY_BACK))
         LocalBroadcastManager.getInstance(context!!).registerReceiver(mMapReceiver,
                 IntentFilter(TravelService.SEGMENT_CHANGED))
+
+        LocalBroadcastManager.getInstance(context!!).registerReceiver(mMapReceiver,
+                IntentFilter(TravelService.MISS_PERM))
+        LocalBroadcastManager.getInstance(context!!).registerReceiver(mMapReceiver,
+                IntentFilter(TravelService.MISS_FEAT))
+        LocalBroadcastManager.getInstance(context!!).registerReceiver(mMapReceiver,
+                IntentFilter(TravelService.REFRESH_UI))
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -139,8 +172,6 @@ class TravelMapFragment : Fragment(), OnMapReadyCallback,
     }
 
     private fun subscribeUI() {
-        subscribed = true
-
         svm!!.optCompass.observe(this, Observer { it ->
             if (null != it) {
                 mBinding.showCompass = it
@@ -180,9 +211,24 @@ class TravelMapFragment : Fragment(), OnMapReadyCallback,
             }
             activity!!.invalidateOptionsMenu()
         })
+        subscribed = true
     }
 
     // region Listeners
+
+    override fun onMyLocationButtonClick(): Boolean {
+        if ((activity!!.application as BaseApp).travelService!!.hasPos) {
+            if (ContextCompat.checkSelfPermission(context!!,
+                            Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED)
+                ActivityCompat.requestPermissions(activity!!,
+                        arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                        PERM_MAP)
+        } else
+            activity!!.startActivityForResult(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS), CHECK_MAP)
+        return false
+    }
+
+    @SuppressLint("MissingPermission")
     override fun onMapReady(p0: GoogleMap?) {
 
         gm = p0
@@ -191,13 +237,9 @@ class TravelMapFragment : Fragment(), OnMapReadyCallback,
         gm!!.setOnMarkerClickListener(this)
         gm!!.setOnMarkerDragListener(this)
         gm!!.setOnInfoWindowClickListener(this)
+        gm!!.setOnMyLocationButtonClickListener(this)
 
         gm!!.uiSettings.isMapToolbarEnabled = false
-        gm!!.uiSettings.isMyLocationButtonEnabled = true
-
-        if (ContextCompat.checkSelfPermission(context!!,
-                        Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED)
-            gm!!.isMyLocationEnabled = true
 
         // observer may occur before map is ready so...
         if (null != travel.value) {
@@ -208,6 +250,19 @@ class TravelMapFragment : Fragment(), OnMapReadyCallback,
 
         (activity!!.application as BaseApp).splash?.loader?.progress = 100
         (activity!!.application as BaseApp).splash?.finish()
+
+        if ((activity!!.application as BaseApp).travelService!!.hasPos) {
+            if (ContextCompat.checkSelfPermission(context!!,
+                            Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED)
+                ActivityCompat.requestPermissions(activity!!,
+                        arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                        PERM_MAP)
+            else
+                gm!!.isMyLocationEnabled = true
+        } else
+            activity!!.startActivityForResult(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS), CHECK_MAP)
+
+        gm!!.uiSettings.isMyLocationButtonEnabled = true
     }
 
     override fun onMapClick(it: LatLng) {
@@ -396,8 +451,7 @@ class TravelMapFragment : Fragment(), OnMapReadyCallback,
                         gm!!.addPolyline(PolylineOptions().width(3f).color(R.color.colorPrimary)
                                 .addAll(PolyUtil.decode(travel.lines!![index])))
                     }
-                    if (TravelService.locationStatus.value!! < 1)
-                        zoomOnAll(travel.markerList)
+                    zoomOnAll(travel.markerList)
                 }
             }
         }

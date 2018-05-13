@@ -281,7 +281,7 @@ class TravelMakerFragment : Fragment(), WaypointsChanged {
             if (ContextCompat.checkSelfPermission(context!!,
                             Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED)
             //  missing feature
-                startActivityForResult(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS), TravelActivity.LOCATION_SET_HERE)
+                startActivityForResult(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS), TravelActivity.CHECK_SET_HERE)
             else
             // missing perm
                 ActivityCompat.requestPermissions(activity!!,

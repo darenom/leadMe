@@ -1,6 +1,5 @@
 package org.darenom.leadme
 
-import android.Manifest
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
 import android.content.Intent
@@ -8,8 +7,6 @@ import android.content.pm.PackageManager
 import android.os.Bundle
 import android.provider.Settings
 import android.speech.tts.TextToSpeech
-import android.support.v4.app.ActivityCompat
-import android.support.v4.content.ContextCompat
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.Menu
@@ -25,7 +22,6 @@ import com.google.maps.model.TravelMode
 import com.sothree.slidinguppanel.SlidingUpPanelLayout
 import kotlinx.android.synthetic.main.activity_splash.*
 import kotlinx.android.synthetic.main.activity_travel.*
-import kotlinx.android.synthetic.main.layout_view_compass.*
 import org.darenom.leadme.db.DateConverter
 import org.darenom.leadme.model.Travel
 import org.darenom.leadme.model.TravelSegment
@@ -59,10 +55,15 @@ class TravelActivity : AppCompatActivity(),
     companion object {
         const val CHECK_TTS_ACCESS = 40
         const val CHECK_NET_ACCESS = 41
-        const val PERM_SET_HERE = 101
-        const val PERM_START_MOTION = 102
-        const val LOCATION_START_MOTION = 103
-        const val LOCATION_SET_HERE = 104
+
+        const val PERM_SET_HERE = 102
+        const val CHECK_SET_HERE = 42
+
+        const val PERM_START_MOTION = 103
+        const val CHECK_START_MOTION = 43
+
+        const val PERM_MAP = 104
+        const val CHECK_MAP = 44
 
     }
 
@@ -210,11 +211,11 @@ class TravelActivity : AppCompatActivity(),
 
     override fun onPanelStateChanged(panelView: View?, previousState: SlidingUpPanelLayout.PanelState?, newState: SlidingUpPanelLayout.PanelState?) {
         if (!travelling)
-            if (previousState == SlidingUpPanelLayout.PanelState.DRAGGING &&
-                    newState == SlidingUpPanelLayout.PanelState.COLLAPSED) {
+            if (previousState == SlidingUpPanelLayout.PanelState.COLLAPSED &&
+                    newState == SlidingUpPanelLayout.PanelState.DRAGGING) {
 
                 if (fab.tag == "2") (panel as PanelFragment).setPanel(0)
-                setFabVisiblity()
+                    setFabVisiblity()
 
             } else if (previousState == SlidingUpPanelLayout.PanelState.DRAGGING &&
                     newState == SlidingUpPanelLayout.PanelState.EXPANDED)
@@ -309,7 +310,7 @@ class TravelActivity : AppCompatActivity(),
                 }
             }
 
-            LOCATION_START_MOTION -> {
+            CHECK_START_MOTION -> {
                 if ((application as BaseApp).travelService!!.hasPos) {
                     startStopTravel()
                 } else {
@@ -317,7 +318,12 @@ class TravelActivity : AppCompatActivity(),
                 }
             }
 
-            LOCATION_SET_HERE -> {
+            CHECK_SET_HERE -> {
+                if (!(application as BaseApp).travelService!!.hasPos) {
+                    Toast.makeText(this, getString(R.string.cant_here), Toast.LENGTH_SHORT).show()
+                }
+            }
+            CHECK_MAP -> {
                 if (!(application as BaseApp).travelService!!.hasPos) {
                     Toast.makeText(this, getString(R.string.cant_here), Toast.LENGTH_SHORT).show()
                 }
@@ -339,6 +345,11 @@ class TravelActivity : AppCompatActivity(),
                     Toast.makeText(this, getString(R.string.wont_travel), Toast.LENGTH_SHORT).show()
                 } else {
                     startStopTravel()
+                }
+            }
+            PERM_MAP -> {
+                if (grantResults.isEmpty() || grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+                    Toast.makeText(this, getString(R.string.wont_here), Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -421,35 +432,17 @@ class TravelActivity : AppCompatActivity(),
 
     // return true if start travelling, false otherwise
     internal fun startStopTravel() {
-        if (TravelService.travelling) { // stop
-            (application as BaseApp).travelService!!.stopMotion()
+        if (TravelService.travelling) {
             svm!!.travelSet.value!!.max += 1
-
             if (svm!!.travelSet.value!!.name.contentEquals(BuildConfig.TMP_NAME))
-                SaveTravelDialog().show(supportFragmentManager, R.string.app_name.toString()) // new travel
+                SaveTravelDialog().show(supportFragmentManager, getString(R.string.app_name)) // new travel
             else {
                 svm!!.update(svm!!.travelSet.value!!) // existing one
                 svm!!.createStatRecord()
             }
-
-            invalidateOptionsMenu()
+            (application as BaseApp).travelService!!.stopMotion()
         } else
-            if ((application as BaseApp).travelService!!.startMotion(svm!!.travelSet.value!!.max + 1)) {
-                invalidateOptionsMenu()
-                return
-            } else {
-                // check perm
-                if (ContextCompat.checkSelfPermission(this,
-                                Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED)
-                //  missing feature
-                    startActivityForResult(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS), LOCATION_START_MOTION)
-                else
-                // missing perm
-                    ActivityCompat.requestPermissions(this,
-                            arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                            PERM_START_MOTION)
-            }
-
+            (application as BaseApp).travelService!!.startMotion(svm!!.travelSet.value!!.max + 1)
     }
 
     fun swapFromTo(v: View) {
