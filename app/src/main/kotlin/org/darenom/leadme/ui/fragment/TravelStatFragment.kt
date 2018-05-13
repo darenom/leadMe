@@ -82,7 +82,6 @@ class TravelStatFragment : Fragment() {
                     true,
                     p.entries.size)
         }
-        // p!! .forEach { (t, u) -> series.appendData(DataPoint(Date(t), u), true, p.size) }
         graph.addSeries(series)
         mBinding!!.mSwitch = true
     }
