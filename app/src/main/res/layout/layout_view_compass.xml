@@ -72,10 +72,10 @@
             android:id="@+id/compass"
             android:layout_width="@dimen/compass_size"
             android:layout_height="@dimen/compass_size"
-            android:layout_marginTop="@dimen/compass_margin_top"
-            android:layout_marginEnd="@dimen/compass_margin_end"
+            android:layout_marginTop="@dimen/compass_margin_end"
+            android:layout_marginEnd="@dimen/compass_margin_top"
             android:layout_alignParentEnd="true"
-            android:alpha=".75"
+            android:alpha=".73"
             visibleGone="@{hasCompass}"
             android:onClick="compassToggle">
             <View
