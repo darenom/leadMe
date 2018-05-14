@@ -2,6 +2,7 @@ package org.darenom.leadme
 
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
@@ -12,6 +13,7 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import com.google.maps.DirectionsApi
 import com.google.maps.GeoApiContext
@@ -85,6 +87,16 @@ class TravelActivity : AppCompatActivity(),
 
         ttsChecker()
 
+        if (!travelling)
+            (application as BaseApp).travelService!!.locate(true)
+
+    }
+
+    override fun onStop() {
+        super.onStop()
+        if (!travelling) {
+            (application as BaseApp).travelService!!.locate(false)
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -149,14 +161,20 @@ class TravelActivity : AppCompatActivity(),
                 svm!!.clear()
                 if ((panel as PanelFragment).current != 0) (panel as PanelFragment).setPanel(0)
                 fabState(2)
+                if (null == svm!!.travelSetList.value)
+                    fab.visibility = View.GONE
+                else
+                    fab.visibility = View.VISIBLE
+                closeKeyboard()
             }
 
             R.id.opt_play_stop -> startStopTravel()
 
             R.id.opt_direction_save -> {
-                if (!item.isChecked)
+                if (!item.isChecked) {
                     directions()
-                else
+                    closeKeyboard()
+                } else
                     SaveTravelDialog().show(this.supportFragmentManager, R.id.opt_direction_save.toString())
             }
         }
@@ -249,7 +267,13 @@ class TravelActivity : AppCompatActivity(),
                     fab.visibility = View.GONE
                 else
                     if (svm!!.name.value!!.contentEquals(BuildConfig.TMP_NAME) && null == travel.value)
-                        fab.visibility = View.VISIBLE
+                        if (fab.tag == "2")
+                            if (null == svm!!.travelSetList.value)
+                                fab.visibility = View.GONE
+                            else
+                                fab.visibility = View.VISIBLE
+                        else
+                            fab.visibility = View.VISIBLE
                     else
                         fab.visibility = View.GONE
 
@@ -447,7 +471,10 @@ class TravelActivity : AppCompatActivity(),
             fab.visibility = View.GONE
         else
             if (svm!!.name.value!!.contentEquals(BuildConfig.TMP_NAME) && null == travel.value)
-                fab.visibility = View.VISIBLE
+                if (null == svm!!.travelSetList.value)
+                    fab.visibility = View.GONE
+                else
+                    fab.visibility = View.VISIBLE
             else
                 fab.visibility = View.GONE
     }
@@ -468,6 +495,12 @@ class TravelActivity : AppCompatActivity(),
             (application as BaseApp).travelService!!.stopMotion()
         } else
             (application as BaseApp).travelService!!.startMotion(svm!!.travelSet.value!!.max + 1)
+    }
+
+    private fun closeKeyboard() {
+        if (null != this.currentFocus)
+            (getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager)
+                    .hideSoftInputFromWindow(this.currentFocus.windowToken, 0)
     }
 
 }

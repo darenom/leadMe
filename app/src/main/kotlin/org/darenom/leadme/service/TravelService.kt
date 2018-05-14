@@ -68,30 +68,7 @@ class TravelService : Service(), TravelLocationManager.Callback {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
-        if (BuildConfig.DEBUG)
-            Log.d(this.javaClass.simpleName, "TravelService Started : $startId")
-
-        locate(true)
-
         return START_STICKY
-    }
-
-    override fun onDestroy() {
-
-        tts?.shutdown()
-
-        if (hasCompass) {
-            if (oCompass)
-                travelCompass?.compute(false)
-            if (dCompass)
-                travelCompass?.compute(false)
-        }
-
-        locate(false)
-
-        if (BuildConfig.DEBUG)
-            Log.d(this.javaClass.simpleName, "TravelService Destroyed")
-        super.onDestroy()
     }
     //endregion
 

@@ -43,7 +43,7 @@ internal class TravelLocationManager(private val context: Context, private val c
         if (enable) {
             if (mode) {
                 locationRequest = LocationRequest().apply {
-                    interval = 36000
+                    interval = 12000
                     fastestInterval = 12000
                     priority = LocationRequest.PRIORITY_HIGH_ACCURACY
                 }
@@ -63,23 +63,21 @@ internal class TravelLocationManager(private val context: Context, private val c
 
     private fun startLocationUpdates(locationRequest: LocationRequest, mode: Int) {
         val builder = LocationSettingsRequest.Builder()
+        builder.addLocationRequest(locationRequest)
         val client: SettingsClient = LocationServices.getSettingsClient(context)
         val task: Task<LocationSettingsResponse> = client.checkLocationSettings(builder.build())
-
         task.addOnSuccessListener { response ->
 
             if (response.locationSettingsStates.isLocationPresent) {
 
                 if (response.locationSettingsStates.isLocationUsable) {
 
-                    builder.addLocationRequest(locationRequest)
+
                     if (ContextCompat.checkSelfPermission(context,
                                     Manifest.permission.ACCESS_FINE_LOCATION)
                             == PackageManager.PERMISSION_GRANTED) {
 
-                        fusedLocationClient.requestLocationUpdates(locationRequest,
-                                this,
-                                null /* Looper */)
+                        fusedLocationClient.requestLocationUpdates(locationRequest, this, null)
                         callback.onStatusChanged(mode)         // ok
 
                     } else

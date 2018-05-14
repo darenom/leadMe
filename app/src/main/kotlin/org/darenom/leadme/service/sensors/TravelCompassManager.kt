@@ -39,7 +39,6 @@ internal class TravelCompassManager(context: Context) : SensorEventListener {
     // register/unregister to sensors
     fun compute(compute: Boolean) {
         if (compute) {
-            Log.e("TravelCompassManager", "registering to sensors")
             mSensorManager!!.registerListener(this,
                     mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
                     SensorManager.SENSOR_DELAY_GAME)
@@ -47,7 +46,6 @@ internal class TravelCompassManager(context: Context) : SensorEventListener {
                     mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD),
                     SensorManager.SENSOR_DELAY_GAME)
         } else {
-            Log.e("TravelCompassManager", "unregistering to sensors")
             mSensorManager!!.unregisterListener(this)
         }
     }

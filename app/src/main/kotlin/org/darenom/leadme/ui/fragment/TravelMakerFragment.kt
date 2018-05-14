@@ -90,8 +90,10 @@ class TravelMakerFragment : Fragment(), WaypointsChanged {
             if (event.rawX <= ((v as EditText).compoundDrawables[0].bounds.width()) * 2.5) {
                 if (v.text.isEmpty())
                     setLocationText(v.id)
-                else
+                else {
                     clearText(v.id)
+                    v.requestFocus()
+                }
             }
             return@OnTouchListener true
         }
