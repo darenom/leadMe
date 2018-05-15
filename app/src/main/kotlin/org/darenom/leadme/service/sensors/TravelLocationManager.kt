@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationManager
+import android.location.LocationProvider
 import android.support.v4.content.ContextCompat
 import android.util.Log
 import com.google.android.gms.location.*
@@ -23,19 +24,21 @@ import com.google.android.gms.tasks.Task
 internal class TravelLocationManager(private val context: Context, private val callback: Callback)
     : LocationCallback() {
 
+    var status = false
+
     private var fusedLocationClient: FusedLocationProviderClient =
             LocationServices.getFusedLocationProviderClient(context)
 
     private var mLocationManager: LocationManager =
             context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
 
-    internal fun canLocate(): Boolean =
-            mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) ||
-                    mLocationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
-
-    internal fun mayLocate(): Boolean =
-            ContextCompat.checkSelfPermission(context,
-                    Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+    internal val hasPos: Boolean
+          get() {
+              return (mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) ||
+                      mLocationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER) &&
+                      ContextCompat.checkSelfPermission(context,
+                              Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED)
+          }
 
     internal fun locate(enable: Boolean, mode: Boolean) {
 
@@ -56,48 +59,44 @@ internal class TravelLocationManager(private val context: Context, private val c
             }
             startLocationUpdates(locationRequest, if (mode) 1 else 0)
         } else {
-            stopLocationUpdates()
+            fusedLocationClient.removeLocationUpdates(this)
+            callback.onStatusChanged(-1)
+            status = false
         }
-
     }
 
     private fun startLocationUpdates(locationRequest: LocationRequest, mode: Int) {
         val builder = LocationSettingsRequest.Builder()
-        builder.addLocationRequest(locationRequest)
         val client: SettingsClient = LocationServices.getSettingsClient(context)
         val task: Task<LocationSettingsResponse> = client.checkLocationSettings(builder.build())
+
+        builder.addLocationRequest(locationRequest)
         task.addOnSuccessListener { response ->
-
             if (response.locationSettingsStates.isLocationPresent) {
-
                 if (response.locationSettingsStates.isLocationUsable) {
-
-
                     if (ContextCompat.checkSelfPermission(context,
                                     Manifest.permission.ACCESS_FINE_LOCATION)
                             == PackageManager.PERMISSION_GRANTED) {
 
                         fusedLocationClient.requestLocationUpdates(locationRequest, this, null)
                         callback.onStatusChanged(mode)         // ok
+                        status = true
 
                     } else
-                        callback.onStatusChanged(-5) // missing permission
+                        callback.onStatusChanged(-5)
 
                 } else
-                    callback.onStatusChanged(-4) // missing feature
+                    callback.onStatusChanged(-4)
 
             } else
-                callback.onStatusChanged(-3) // missing hardware
-
+                callback.onStatusChanged(-3) // unknown
         }
 
-        task.addOnFailureListener { _ -> callback.onStatusChanged(-2) } // failed to add
+        task.addOnFailureListener { _ ->
+            callback.onStatusChanged(-2) // unknown
+        }
     }
 
-    private fun stopLocationUpdates() {
-        fusedLocationClient.removeLocationUpdates(this)
-        callback.onStatusChanged(-1)                    // stopped
-    }
 
     override fun onLocationResult(p0: LocationResult?) {
         super.onLocationResult(p0)
@@ -110,10 +109,17 @@ internal class TravelLocationManager(private val context: Context, private val c
 
     override fun onLocationAvailability(p0: LocationAvailability?) {
         super.onLocationAvailability(p0)
-        if (null != p0)
-            if (!p0.isLocationAvailable)
-                if (!canLocate() || !mayLocate())
-                    stopLocationUpdates()
+        if (null != p0) {
+            if (!p0.isLocationAvailable) {  // lost locations, is there a reason?
+                if (!hasPos) {
+                    callback.onStatusChanged(-6)
+                    status = false
+                }
+            } else {
+                if (!status)
+                    callback.onStatusChanged(-7)
+            }
+        }
     }
 
     interface Callback {

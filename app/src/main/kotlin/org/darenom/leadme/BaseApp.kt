@@ -2,24 +2,16 @@ package org.darenom.leadme
 
 import android.app.Application
 import android.app.Service
-import android.app.Service.START_FLAG_RETRY
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.net.ConnectivityManager
-import android.os.Bundle
 import android.os.IBinder
-import android.support.annotation.Nullable
 import android.util.Log
-import android.widget.Toast
-import com.google.android.gms.common.ConnectionResult
-import com.google.android.gms.common.api.GoogleApiClient
-import com.google.android.gms.location.LocationServices
+import kotlinx.android.synthetic.main.activity_splash.*
 import org.darenom.leadme.db.AppDatabase
 import org.darenom.leadme.service.TravelService
-import android.support.v7.app.AppCompatActivity
-import kotlinx.android.synthetic.main.activity_splash.*
 
 
 /**
@@ -43,6 +35,7 @@ class BaseApp : Application() {
     var travelService: TravelService? = null
     private var travelCnx: ServiceConnection = object : ServiceConnection {
         override fun onServiceConnected(className: ComponentName, service: IBinder) {
+            splash?.loader?.progress = 20
             Log.e("BaseApp", "Connected to travelService")
             val binder = service as TravelService.TravelServiceBinder
             travelService = binder.service
@@ -56,20 +49,18 @@ class BaseApp : Application() {
         }
     }
 
-    fun moveOn() {
-        splash?.loader?.progress = 30
-        startActivity(Intent(applicationContext, TravelActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-    }
-
     override fun onCreate() {
         super.onCreate()
 
         mAppExecutors = AppExecutors()
 
-        splash?.loader?.progress = 20
         bindService(Intent(this, TravelService::class.java),
                 travelCnx, Context.BIND_AUTO_CREATE)
 
     }
 
+    fun moveOn() {
+        splash?.loader?.progress = 30
+        startActivity(Intent(applicationContext, TravelActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+    }
 }

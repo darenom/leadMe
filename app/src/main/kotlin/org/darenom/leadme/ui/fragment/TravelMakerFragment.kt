@@ -20,10 +20,7 @@ import android.view.inputmethod.EditorInfo
 import android.widget.*
 import com.google.maps.model.LatLng
 import kotlinx.android.synthetic.main.fragment_maker.*
-import org.darenom.leadme.BaseApp
-import org.darenom.leadme.BuildConfig
-import org.darenom.leadme.R
-import org.darenom.leadme.TravelActivity
+import org.darenom.leadme.*
 import org.darenom.leadme.databinding.FragmentMakerBinding
 import org.darenom.leadme.service.TravelService
 import org.darenom.leadme.service.TravelService.Companion.travel
@@ -283,7 +280,10 @@ class TravelMakerFragment : Fragment(), WaypointsChanged {
             if (ContextCompat.checkSelfPermission(context!!,
                             Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED)
             //  missing feature
-                startActivityForResult(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS), TravelActivity.CHECK_SET_HERE)
+                if (!(activity!! as TravelActivity).locCheck) {
+                    (activity!! as TravelActivity).locCheck = true
+                    startActivityForResult(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS), TravelActivity.CHECK_SET_HERE)
+                }
             else
             // missing perm
                 ActivityCompat.requestPermissions(activity!!,

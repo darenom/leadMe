@@ -5,6 +5,7 @@ import android.arch.lifecycle.ViewModelProviders
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.res.Configuration
 import android.os.Bundle
 import android.provider.Settings
 import android.speech.tts.TextToSpeech
@@ -49,9 +50,9 @@ import java.util.*
  */
 
 class TravelActivity : AppCompatActivity(),
+        SlidingUpPanelLayout.PanelSlideListener,
         PendingResult.Callback<DirectionsResult>,
-        SaveTravelDialog.SaveTravelDialogListener,
-        SlidingUpPanelLayout.PanelSlideListener {
+        SaveTravelDialog.SaveTravelDialogListener {
 
 
     companion object {
@@ -74,7 +75,6 @@ class TravelActivity : AppCompatActivity(),
     // region LifeCycle
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        (application as BaseApp).splash?.loader?.progress = 40
         setContentView(R.layout.activity_travel)
 
         setSupportActionBar(toolbar)
@@ -85,18 +85,8 @@ class TravelActivity : AppCompatActivity(),
         svm = ViewModelProviders.of(this).get(SharedViewModel::class.java)
         subscribeUI()
 
-        ttsChecker()
+        (application as BaseApp).splash?.loader?.progress = 40
 
-        if (!travelling)
-            (application as BaseApp).travelService!!.locate(true)
-
-    }
-
-    override fun onStop() {
-        super.onStop()
-        if (!travelling) {
-            (application as BaseApp).travelService!!.locate(false)
-        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -180,21 +170,12 @@ class TravelActivity : AppCompatActivity(),
         }
         return false
     }
+    // endregion
 
+    // region permissions
+    var locCheck = false
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        //super.onActivityResult(requestCode, resultCode, data)
         when (requestCode) {
-            CHECK_TTS_ACCESS -> {
-                if (resultCode == TextToSpeech.Engine.CHECK_VOICE_DATA_PASS) {
-                    (this.application as BaseApp).travelService!!.startTTS()
-
-                } else {
-                    val installIntent = Intent()
-                    installIntent.action = TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA
-                    startActivity(installIntent)
-                }
-            }
-
             CHECK_NET_ACCESS -> {
                 if (!(application as BaseApp).isNetworkAvailable) {
                     Toast.makeText(this, getString(R.string.cant_net), Toast.LENGTH_SHORT).show()
@@ -202,6 +183,7 @@ class TravelActivity : AppCompatActivity(),
             }
 
             CHECK_START_MOTION -> {
+                locCheck = false
                 if ((application as BaseApp).travelService!!.hasPos) {
                     startStopTravel()
                 } else {
@@ -210,14 +192,17 @@ class TravelActivity : AppCompatActivity(),
             }
 
             CHECK_SET_HERE -> {
+                locCheck = false
                 if (!(application as BaseApp).travelService!!.hasPos) {
                     Toast.makeText(this, getString(R.string.cant_here), Toast.LENGTH_SHORT).show()
                 }
             }
             CHECK_MAP -> {
+                locCheck = false
                 if (!(application as BaseApp).travelService!!.hasPos) {
                     Toast.makeText(this, getString(R.string.cant_here), Toast.LENGTH_SHORT).show()
                 }
+
             }
         }
     }
@@ -247,6 +232,12 @@ class TravelActivity : AppCompatActivity(),
     }
     // endregion
 
+    // region UI
+    private fun closeKeyboard() {
+        if (null != this.currentFocus)
+            (getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager)
+                    .hideSoftInputFromWindow(this.currentFocus.windowToken, 0)
+    }
     // panel
     override fun onPanelSlide(panel: View, slideOffset: Float) {
         // do nothing
@@ -296,73 +287,6 @@ class TravelActivity : AppCompatActivity(),
 
     }
 
-    // DirectionsAPI
-    private fun directions() {
-        val mode = TravelMode.values()[svm!!.travelSet.value!!.mode]
-
-        val op = svm!!.travelSet.value!!.originPosition.split("/")
-        val origin = LatLng(op[0].toDouble(), op[1].toDouble())
-
-        val dp = svm!!.travelSet.value!!.destinationPosition.split("/")
-        val destination = LatLng(dp[0].toDouble(), dp[1].toDouble())
-
-        val list = ArrayList<LatLng>()
-        svm!!.travelSet.value!!.waypointPosition.split("#")
-                .filter { it.isNotEmpty() }
-                .map { it.split("/") }
-                .mapTo(list) { LatLng(it[0].toDouble(), it[1].toDouble()) }
-
-        DirectionsApi.newRequest(
-                GeoApiContext().setApiKey(getString(R.string.google_maps_key))
-        )
-                .language(Locale.getDefault().language)
-                .region(Locale.getDefault().language)
-                .mode(mode)
-                .origin(origin)
-                .destination(destination)
-                .waypoints(* Array(list.size, { i -> list[i] }))
-                .setCallback(this)
-    }
-
-    override fun onFailure(e: Throwable?) {
-        Log.w(TravelMapFragment::class.java.simpleName, e?.message)
-        if (!(application as BaseApp).isNetworkAvailable)
-            startActivityForResult(Intent(Settings.ACTION_WIFI_SETTINGS), CHECK_NET_ACCESS)
-    }
-
-    override fun onResult(result: DirectionsResult?) {
-        if (result!!.routes.isNotEmpty()) {
-
-            (application as BaseApp).mAppExecutors!!.diskIO().execute({
-                val tmpTravel = Travel().transform(result.routes[0])
-                var d = 0L
-                var t = 0L
-                result.routes[0].legs.forEach {
-                    d += it.distance.inMeters
-                    t += it.duration.inSeconds
-                }
-
-                (application as BaseApp).mAppExecutors!!.mainThread().execute({
-                    travel.value = tmpTravel
-                    svm!!.travelSet.value!!.distance = if (d > 999) "${d / 1000} km" else "$d m"
-                    svm!!.travelSet.value!!.estimatedTime = DateConverter.compoundDuration(t)
-                    svm!!.update(svm!!.travelSet.value!!)
-                })
-            })
-        }
-
-    }
-
-    // SaveDialog
-    override fun onCancel() {
-        svm!!.cancelSave()
-    }
-
-    override fun onKeyListener(name: String) {
-        svm!!.okSave(name)
-    }
-
-    // UI
     fun swapFromTo(v: View) {
         if (v.id == R.id.search_swap) {
             val tmpAd = svm!!.travelSet.value!!.originAddress
@@ -427,12 +351,6 @@ class TravelActivity : AppCompatActivity(),
         }
     }
 
-    private fun ttsChecker() {
-        val checkIntent = Intent()
-        checkIntent.action = TextToSpeech.Engine.ACTION_CHECK_TTS_DATA
-        startActivityForResult(checkIntent, CHECK_TTS_ACCESS)
-    }
-
     private fun subscribeUI() {
 
         travel.observe(this, Observer { it ->
@@ -483,6 +401,72 @@ class TravelActivity : AppCompatActivity(),
         svm!!.getStampRecords(name, iter)
     }
 
+    // DirectionsAPI
+    private fun directions() {
+        val mode = TravelMode.values()[svm!!.travelSet.value!!.mode]
+
+        val op = svm!!.travelSet.value!!.originPosition.split("/")
+        val origin = LatLng(op[0].toDouble(), op[1].toDouble())
+
+        val dp = svm!!.travelSet.value!!.destinationPosition.split("/")
+        val destination = LatLng(dp[0].toDouble(), dp[1].toDouble())
+
+        val list = ArrayList<LatLng>()
+        svm!!.travelSet.value!!.waypointPosition.split("#")
+                .filter { it.isNotEmpty() }
+                .map { it.split("/") }
+                .mapTo(list) { LatLng(it[0].toDouble(), it[1].toDouble()) }
+
+        DirectionsApi.newRequest(
+                GeoApiContext().setApiKey(getString(R.string.google_maps_key))
+        )
+                .language(Locale.getDefault().language)
+                .region(Locale.getDefault().language)
+                .mode(mode)
+                .origin(origin)
+                .destination(destination)
+                .waypoints(* Array(list.size, { i -> list[i] }))
+                .setCallback(this)
+    }
+
+    override fun onFailure(e: Throwable?) {
+        Log.w(TravelMapFragment::class.java.simpleName, e?.message)
+        if (!(application as BaseApp).isNetworkAvailable)
+            startActivityForResult(Intent(Settings.ACTION_WIFI_SETTINGS), CHECK_NET_ACCESS)
+    }
+
+    override fun onResult(result: DirectionsResult?) {
+        if (result!!.routes.isNotEmpty()) {
+
+            (application as BaseApp).mAppExecutors!!.diskIO().execute({
+                val tmpTravel = Travel().transform(result.routes[0])
+                var d = 0L
+                var t = 0L
+                result.routes[0].legs.forEach {
+                    d += it.distance.inMeters
+                    t += it.duration.inSeconds
+                }
+
+                (application as BaseApp).mAppExecutors!!.mainThread().execute({
+                    TravelService.travel.value = tmpTravel
+                    svm!!.travelSet.value!!.distance = if (d > 999) "${d / 1000} km" else "$d m"
+                    svm!!.travelSet.value!!.estimatedTime = DateConverter.compoundDuration(t)
+                    svm!!.update(svm!!.travelSet.value!!)
+                })
+            })
+        }
+
+    }
+
+    // SaveDialog
+    override fun onCancel() {
+        svm!!.cancelSave()
+    }
+
+    override fun onKeyListener(name: String) {
+        svm!!.okSave(name)
+    }
+
     internal fun startStopTravel() {
         if (TravelService.travelling) {
             svm!!.travelSet.value!!.max += 1
@@ -497,10 +481,5 @@ class TravelActivity : AppCompatActivity(),
             (application as BaseApp).travelService!!.startMotion(svm!!.travelSet.value!!.max + 1)
     }
 
-    private fun closeKeyboard() {
-        if (null != this.currentFocus)
-            (getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager)
-                    .hideSoftInputFromWindow(this.currentFocus.windowToken, 0)
-    }
 
 }

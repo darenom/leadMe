@@ -1,23 +1,15 @@
 package org.darenom.leadme.service
 
-import android.Manifest
 import android.app.Service
 import android.arch.lifecycle.MutableLiveData
-import android.arch.lifecycle.Observer
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.hardware.Sensor
 import android.hardware.SensorManager
 import android.location.Location
-import android.location.LocationListener
-import android.location.LocationManager
-import android.location.LocationProvider
 import android.os.Binder
-import android.os.Bundle
 import android.os.Handler
 import android.os.IBinder
-import android.support.v4.content.ContextCompat
 import android.support.v4.content.LocalBroadcastManager
 import android.util.Log
 import org.darenom.leadme.BaseApp
@@ -37,6 +29,7 @@ import org.darenom.leadme.service.sensors.TravelLocationManager
 class TravelService : Service(), TravelLocationManager.Callback {
 
     private val binder = TravelServiceBinder()
+
     inner class TravelServiceBinder : Binder() {
         val service: TravelService
             get() = this@TravelService
@@ -68,7 +61,13 @@ class TravelService : Service(), TravelLocationManager.Callback {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
+        locate(true)
         return START_STICKY
+    }
+
+    override fun onDestroy() {
+        locate(false)
+        super.onDestroy()
     }
     //endregion
 
@@ -142,12 +141,13 @@ class TravelService : Service(), TravelLocationManager.Callback {
     // endregion
 
     // region Location
-
-    var hasPos: Boolean = false
-        get() = travelLocationManager!!.canLocate() && travelLocationManager!!.mayLocate()
     private var travelLocationManager: TravelLocationManager? = null
+    val hasPos: Boolean
+        get() {
+            return travelLocationManager!!.hasPos
+        }
 
-    internal fun locate(b: Boolean) {
+    private fun locate(b: Boolean) {
         if (b)
             travelLocationManager?.locate(true, false)
         else
@@ -172,37 +172,49 @@ class TravelService : Service(), TravelLocationManager.Callback {
     }
 
     override fun onStatusChanged(status: Int) {
-        when (status){
-            -5 -> {LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(Intent(MISS_PERM))}
-            -4 -> {LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(Intent(MISS_FEAT))}
-            -3 -> {}
-            -2 -> {}
+        when (status) {
+            -7 -> {
+                // got providers back
+                LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(Intent(LOCATION_UP))
+                locate(false) // remove previous pace
+                locate(true) // set back to idle pace
+            }
+            -6 -> {
+                // lost providers leave location requests alive to monitor providers back
+                LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(Intent(LOCATION_DOWN))
+                onTravelStop()
+                travelling = false
+            }
+            in -5..-2 -> {
+                LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(Intent(NO_MOTION).putExtra(NO_MOTION_EXTRA, status)) //motion
+            }
+
             -1 -> {
+                onTravelStop()
                 travelling = false
-                isFirstRound = false
-                oldStatus = -1
-                tmpTs = null
-                tts?.off()
-                enableCompass(false, 1)
+            }
+            0 -> {
+                onTravelStop()
+                travelling = false
                 LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(Intent(REFRESH_UI))
             }
-            0  -> {
-                travelling = false
-                isFirstRound = false
-                oldStatus = -1
-                tmpTs = null
-                tts?.off()
-                enableCompass(false, 1)
-                LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(Intent(REFRESH_UI))
-            }
-            1  ->{
+            1 -> {
                 isFirstRound = true
                 travelling = true
+                tmpTs = null
                 oldStatus = -1
                 tts?.on()
                 LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(Intent(REFRESH_UI))
             }
         }
+    }
+
+    private fun onTravelStop() {
+        isFirstRound = false
+        oldStatus = -1
+        tmpTs = null
+        tts?.off()
+        enableCompass(false, 1)
     }
     // endregion
 
@@ -210,13 +222,16 @@ class TravelService : Service(), TravelLocationManager.Callback {
     fun startTTS() {
         tts = TTS(this)
     }
+
     fun startMotion(iter: Int) {
         this.iter = iter
         travelLocationManager!!.locate(true, true)
     }
+
     fun stopMotion() {
         travelLocationManager!!.locate(true, false)
     }
+
     private var tts: TTS? = null
     private var iter: Int? = null
     private var isFirstRound: Boolean = false
@@ -328,6 +343,7 @@ class TravelService : Service(), TravelLocationManager.Callback {
         }
 
     }
+
     private fun messageWayBack() {
         enableCompass(false, 1)
         LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(Intent(MY_WAY_BACK))
@@ -350,9 +366,11 @@ class TravelService : Service(), TravelLocationManager.Callback {
         const val ARRIVED = "Arrived"
         const val MY_WAY_BACK = "WayBack"
 
-        const val MISS_FEAT = "MissingFeature"
-        const val MISS_PERM = "MissingPermission"
         const val REFRESH_UI = "RefreshUI"
+        const val NO_MOTION = "NoMotion"
+        const val NO_MOTION_EXTRA = "NoMotionExtra"
+        const val LOCATION_DOWN = "LocationDown"
+        const val LOCATION_UP = "LocationUp"
 
     }
 }
