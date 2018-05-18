@@ -135,7 +135,6 @@ class TravelMapFragment : Fragment(), OnMapReadyCallback,
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         mBinding.hasCompass = (activity!!.application as BaseApp).travelService?.hasCompass ?: false
-        (activity!!.application as BaseApp).splash?.loader?.progress = 70
         subscribeUI()
 
     }
@@ -252,8 +251,6 @@ class TravelMapFragment : Fragment(), OnMapReadyCallback,
     }
 
     override fun onMapReady(p0: GoogleMap?) {
-        (activity!!.application as BaseApp).splash?.loader?.progress = 80
-
         if (null != p0) {
             gm = p0
 
@@ -275,10 +272,9 @@ class TravelMapFragment : Fragment(), OnMapReadyCallback,
                     drawSet(svm!!.travelSet.value!!)
                 }
             }
-        }
 
-        (activity!!.application as BaseApp).splash?.loader?.progress = 100
-        (activity!!.application as BaseApp).splash?.finish()
+            (activity!!.application as BaseApp).mActivity!!.finish()
+        }
     }
 
     private fun locationButton() {

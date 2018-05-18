@@ -31,8 +31,6 @@ class PanelFragment : Fragment() {
         statFragment = TravelStatisticsFragment.getInstance()
         makerFragment = TravelMakerFragment.getInstance()
         listFragment = TravelListFragment.getInstance()
-
-        (activity!!.application as BaseApp).splash?.loader?.progress = 60
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {

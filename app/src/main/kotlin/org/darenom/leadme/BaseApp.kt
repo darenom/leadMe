@@ -1,5 +1,6 @@
 package org.darenom.leadme
 
+import android.app.Activity
 import android.app.Application
 import android.app.Service
 import android.content.ComponentName
@@ -7,6 +8,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.net.ConnectivityManager
+import android.os.Bundle
 import android.os.IBinder
 import android.util.Log
 import kotlinx.android.synthetic.main.activity_splash.*
@@ -20,7 +22,7 @@ import org.darenom.leadme.service.TravelService
 
 class BaseApp : Application() {
 
-    var splash: Splash? = null
+    var mActivity: Activity? = null
     var mAppExecutors: AppExecutors? = null
     var database: AppDatabase? = null
     var travelService: TravelService? = null
@@ -33,7 +35,6 @@ class BaseApp : Application() {
 
     private var travelCnx: ServiceConnection = object : ServiceConnection {
         override fun onServiceConnected(className: ComponentName, service: IBinder) {
-            splash?.loader?.progress = 20
             Log.e("BaseApp", "Connected to travelService")
             val binder = service as TravelService.TravelServiceBinder
             travelService = binder.service
@@ -47,6 +48,10 @@ class BaseApp : Application() {
         }
     }
 
+    internal fun moveOn() {
+        startActivity(Intent(applicationContext, TravelActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+    }
+
     override fun onCreate() {
         super.onCreate()
 
@@ -56,10 +61,5 @@ class BaseApp : Application() {
         bindService(Intent(this, TravelService::class.java),
                 travelCnx, Context.BIND_AUTO_CREATE)
 
-    }
-
-    fun moveOn() {
-        splash?.loader?.progress = 30
-        startActivity(Intent(applicationContext, TravelActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
     }
 }

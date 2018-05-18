@@ -62,6 +62,7 @@ class TravelService : Service(), TravelLocationManager.Callback {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
         locate(true)
+        startTTS()
         return START_STICKY
     }
 
@@ -220,8 +221,9 @@ class TravelService : Service(), TravelLocationManager.Callback {
 
     // region Travel
     fun startTTS() {
-        if (null == tts)
-            tts = TTS(this)
+        if (hasVoice)
+            if (null == tts)
+                tts = TTS(this)
     }
 
     fun startMotion(iter: Int) {
@@ -233,6 +235,7 @@ class TravelService : Service(), TravelLocationManager.Callback {
         travelLocationManager!!.locate(true, false)
     }
 
+    var hasVoice: Boolean = false
     private var tts: TTS? = null
     private var iter: Int? = null
     private var isFirstRound: Boolean = false

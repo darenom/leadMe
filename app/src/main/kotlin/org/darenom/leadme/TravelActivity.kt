@@ -83,8 +83,6 @@ class TravelActivity : AppCompatActivity(),
 
         svm = ViewModelProviders.of(this).get(SharedViewModel::class.java)
         subscribeUI()
-        (application as BaseApp).travelService!!.startTTS()
-        (application as BaseApp).splash?.loader?.progress = 40
 
     }
 
