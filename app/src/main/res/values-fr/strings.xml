@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">leadMe</string>
+    <string name="destination">Vous avez atteint votre destination</string>
+    <string name="out_of_bounds">Vous êtes sorti de l\'itinéraire</string>
+    <string name="err_no_net">Pas d\'acces réseau</string>
+    <string name="cant_travel">La localisation doit être active pour suivre le trajet</string>
+    <string name="cant_here">La localisation doit être active pour récupérer la position</string>
+    <string name="wont_travel">La permission doit être active pour suivre le trajet</string>
+    <string name="wont_here">La permission doit être active pour récupérer la position</string>
+    <string name="cant_net">Réseau de données inaccessible</string>
+    <string name="max_waypoints">Limite de points de passage atteinte (17)</string>
+    <string name="hint_origin">départ</string>
+    <string name="hint_destination">arrivée</string>
+    <string name="hint_waypoint">point de passage</string>
+    <string name="searching_loc">En attente de position</string>
+    <string name="loading">Chargement...</string>
+    <string name="travelset_estimatedtime">"Durée : "</string>
+    <string name="travelset_distance">"Distance : "</string>
+    <string name="travelstat_time_start">"Début : "</string>
+    <string name="travelstat_time_end">"Fin : "</string>
+    <string name="travelstat_timed">"Durée : "</string>
+    <string name="travelstat_distance">"Distance : "</string>
+    <string name="travelstat_avgspeed">"Vmoy : "</string>
+    <string name="file_save">"Enregistrer sous : "</string>
+    <string name="no_name">Nom de fichier vide</string>
+    <string name="same_name">Nom fichier existant</string>
+    <string name="loading_comments">loading comments</string>
+    <string name="notif_main_msg">est actif</string>
+</resources>
