@@ -5,10 +5,8 @@ import android.arch.lifecycle.ViewModelProviders
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.content.res.Configuration
 import android.os.Bundle
 import android.provider.Settings
-import android.speech.tts.TextToSpeech
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.Menu
@@ -26,6 +24,7 @@ import com.sothree.slidinguppanel.SlidingUpPanelLayout
 import kotlinx.android.synthetic.main.activity_splash.*
 import kotlinx.android.synthetic.main.activity_travel.*
 import org.darenom.leadme.db.DateConverter
+import org.darenom.leadme.db.entities.TravelSetEntity
 import org.darenom.leadme.model.Travel
 import org.darenom.leadme.model.TravelSegment
 import org.darenom.leadme.service.TravelService
@@ -84,7 +83,7 @@ class TravelActivity : AppCompatActivity(),
 
         svm = ViewModelProviders.of(this).get(SharedViewModel::class.java)
         subscribeUI()
-
+        (application as BaseApp).travelService!!.startTTS()
         (application as BaseApp).splash?.loader?.progress = 40
 
     }
@@ -151,10 +150,10 @@ class TravelActivity : AppCompatActivity(),
                 svm!!.clear()
                 if ((panel as PanelFragment).current != 0) (panel as PanelFragment).setPanel(0)
                 fabState(2)
-                if (null == svm!!.travelSetList.value)
-                    fab.visibility = View.GONE
-                else
+                if (svm!!.travelSetList.value!!.isNotEmpty())
                     fab.visibility = View.VISIBLE
+                else
+                    fab.visibility = View.GONE
                 closeKeyboard()
             }
 
@@ -165,7 +164,7 @@ class TravelActivity : AppCompatActivity(),
                     directions()
                     closeKeyboard()
                 } else
-                    SaveTravelDialog().show(this.supportFragmentManager, R.id.opt_direction_save.toString())
+                    SaveTravelDialog().show(supportFragmentManager, R.id.opt_direction_save.toString())
             }
         }
         return false
@@ -174,6 +173,7 @@ class TravelActivity : AppCompatActivity(),
 
     // region permissions
     var locCheck = false
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         when (requestCode) {
             CHECK_NET_ACCESS -> {
@@ -238,6 +238,7 @@ class TravelActivity : AppCompatActivity(),
             (getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager)
                     .hideSoftInputFromWindow(this.currentFocus.windowToken, 0)
     }
+
     // panel
     override fun onPanelSlide(panel: View, slideOffset: Float) {
         // do nothing
@@ -253,32 +254,25 @@ class TravelActivity : AppCompatActivity(),
             else if (previousState == SlidingUpPanelLayout.PanelState.DRAGGING &&
                     newState == SlidingUpPanelLayout.PanelState.COLLAPSED) {
 
-                if (fab.tag == "2") (panel as PanelFragment).setPanel(0)
-                if (TravelService.travelling)
-                    fab.visibility = View.GONE
-                else
-                    if (svm!!.name.value!!.contentEquals(BuildConfig.TMP_NAME) && null == travel.value)
-                        if (fab.tag == "2")
-                            if (null == svm!!.travelSetList.value)
-                                fab.visibility = View.GONE
-                            else
+                fab.visibility = View.GONE
+                if (!TravelService.travelling)
+                    if (fab.tag == "2") {
+                        (panel as PanelFragment).setPanel(0)
+                        if (svm!!.name.value!!.contentEquals(BuildConfig.TMP_NAME) && null == travel.value)
+                            if (svm!!.travelSetList.value!!.isNotEmpty())
                                 fab.visibility = View.VISIBLE
-                        else
-                            fab.visibility = View.VISIBLE
-                    else
-                        fab.visibility = View.GONE
+                    }
 
 
             } // opened
             else if (previousState == SlidingUpPanelLayout.PanelState.DRAGGING &&
                     newState == SlidingUpPanelLayout.PanelState.EXPANDED) {
-                if (TravelService.travelling)
-                    fab.visibility = View.GONE
-                else
-                    if (svm!!.name.value!!.contentEquals(BuildConfig.TMP_NAME) && null == travel.value)
-                        fab.visibility = View.GONE
-                    else
+
+                fab.visibility = View.GONE
+                if (!TravelService.travelling)
+                    if (!(svm!!.name.value!!.contentEquals(BuildConfig.TMP_NAME) && null == travel.value))
                         fab.visibility = View.VISIBLE
+
             } // closing
             else if (previousState == SlidingUpPanelLayout.PanelState.EXPANDED &&
                     newState == SlidingUpPanelLayout.PanelState.DRAGGING) {
@@ -372,6 +366,25 @@ class TravelActivity : AppCompatActivity(),
             sliding_panel.panelState = SlidingUpPanelLayout.PanelState.COLLAPSED
         })
 
+        svm!!.travelSetList.observe(this, Observer<List<TravelSetEntity>> { it ->
+            if (null != it) {
+                fab.visibility = View.GONE
+                if (!TravelService.travelling)
+                    when (sliding_panel.panelState) {
+                        SlidingUpPanelLayout.PanelState.EXPANDED ->
+                            if (!(svm!!.name.value!!.contentEquals(BuildConfig.TMP_NAME)
+                                            && null == travel.value))
+                                fab.visibility = View.VISIBLE
+                        SlidingUpPanelLayout.PanelState.COLLAPSED ->
+                            if (fab.tag == "2")
+                                if (svm!!.name.value!!.contentEquals(BuildConfig.TMP_NAME)
+                                        && null == travel.value)
+                                    if (svm!!.travelSetList.value!!.isNotEmpty())
+                                        fab.visibility = View.VISIBLE
+                    }
+            }
+        })
+
         svm!!.name.observe(this, Observer { it ->
             if (null != it) {
                 svm!!.read(it) // set Travel
@@ -384,17 +397,6 @@ class TravelActivity : AppCompatActivity(),
             if (null != it)
                 (panel as PanelFragment).statFragment!!.showGraph(it)
         })
-
-        if (TravelService.travelling)
-            fab.visibility = View.GONE
-        else
-            if (svm!!.name.value!!.contentEquals(BuildConfig.TMP_NAME) && null == travel.value)
-                if (null == svm!!.travelSetList.value)
-                    fab.visibility = View.GONE
-                else
-                    fab.visibility = View.VISIBLE
-            else
-                fab.visibility = View.GONE
     }
 
     fun setRun(name: String, iter: Int) {

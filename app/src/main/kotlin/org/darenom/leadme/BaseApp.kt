@@ -22,6 +22,8 @@ class BaseApp : Application() {
 
     var splash: Splash? = null
     var mAppExecutors: AppExecutors? = null
+    var database: AppDatabase? = null
+    var travelService: TravelService? = null
     val isNetworkAvailable: Boolean
         get() {
             val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
@@ -29,10 +31,6 @@ class BaseApp : Application() {
             return activeNetworkInfo != null && activeNetworkInfo.isConnected
         }
 
-    val database: AppDatabase
-        get() = AppDatabase.getInstance(this, mAppExecutors!!)
-
-    var travelService: TravelService? = null
     private var travelCnx: ServiceConnection = object : ServiceConnection {
         override fun onServiceConnected(className: ComponentName, service: IBinder) {
             splash?.loader?.progress = 20
@@ -53,6 +51,7 @@ class BaseApp : Application() {
         super.onCreate()
 
         mAppExecutors = AppExecutors()
+        database = AppDatabase.getInstance(this, mAppExecutors!!)
 
         bindService(Intent(this, TravelService::class.java),
                 travelCnx, Context.BIND_AUTO_CREATE)

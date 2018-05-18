@@ -161,7 +161,7 @@ class TravelService : Service(), TravelLocationManager.Callback {
         if (travelling && travel.value!!.points!!.isNotEmpty()) {
             // stamp bdd
             (application as BaseApp).mAppExecutors!!.diskIO().execute {
-                (application as BaseApp).database.travelStampDao().insert(TravelStampEntity(
+                (application as BaseApp).database!!.travelStampDao().insert(TravelStampEntity(
                         travel.value!!.name, iter, location.time, location.latitude, location.longitude,
                         location.accuracy, location.bearing, location.provider, location.altitude,
                         location.toString()))
@@ -220,7 +220,8 @@ class TravelService : Service(), TravelLocationManager.Callback {
 
     // region Travel
     fun startTTS() {
-        tts = TTS(this)
+        if (null == tts)
+            tts = TTS(this)
     }
 
     fun startMotion(iter: Int) {

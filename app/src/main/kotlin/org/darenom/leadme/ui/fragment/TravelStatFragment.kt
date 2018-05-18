@@ -15,6 +15,7 @@ import kotlinx.android.synthetic.main.fragment_travelstat.*
 import org.darenom.leadme.R
 import org.darenom.leadme.TravelActivity
 import org.darenom.leadme.databinding.FragmentTravelstatBinding
+import org.darenom.leadme.db.AppDatabase
 import org.darenom.leadme.db.entities.TravelStatEntity
 import org.darenom.leadme.db.model.TravelStat
 import org.darenom.leadme.ui.adapter.TravelStatAdapter

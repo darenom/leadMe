@@ -15,21 +15,22 @@ import org.darenom.leadme.db.entities.TravelSetEntity
  */
 
 
-class TravelSetViewModel(application: Application, database: AppDatabase, name: String)
+class TravelSetViewModel(application: Application, name: String)
     : AndroidViewModel(application) {
 
     var observableTravelSet: MediatorLiveData<TravelSetEntity> = MediatorLiveData()
 
     init {
-        observableTravelSet.addSource<TravelSetEntity>(database.travelSetDao().getByName(name), { observableTravelSet.setValue(it) })
+        observableTravelSet.addSource<TravelSetEntity>(
+                (application as BaseApp).database!!.travelSetDao()
+                        .getByName(name), { observableTravelSet.setValue(it) })
     }
 
     class Factory(private val mApplication: Application, private val name: String) : ViewModelProvider.NewInstanceFactory() {
 
-        private val mRepository: AppDatabase = (mApplication as BaseApp).database
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return TravelSetViewModel(mApplication, mRepository, name) as T
+            return TravelSetViewModel(mApplication, name) as T
         }
     }
 }

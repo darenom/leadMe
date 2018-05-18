@@ -39,8 +39,6 @@ class SharedViewModel(app: Application) : AndroidViewModel(app) {
     private val cTag = this.javaClass.simpleName
 
     private var settings: SharedPreferences? = null
-    private var database: AppDatabase? = null
-    private var executors: AppExecutors? = null
 
     val travelSetList: MediatorLiveData<List<TravelSetEntity>> = MediatorLiveData()
     val travelSet: MediatorLiveData<TravelSetEntity> = MediatorLiveData()
@@ -85,20 +83,17 @@ class SharedViewModel(app: Application) : AndroidViewModel(app) {
 
     init {
 
-        database = getApplication<BaseApp>().database
 
         settings = getApplication<BaseApp>()
                 .getSharedPreferences(getApplication<BaseApp>().packageName, 0)
-
-        executors = getApplication<BaseApp>().mAppExecutors
 
         optCompass.value = settings!!.getBoolean(OPTIONS_COMPASS_KEY, false)
         tmode.value = settings!!.getInt(OPTION_MODE_KEY, 0)
         name.value = settings!!.getString(OPTION_NAME_KEY, BuildConfig.TMP_NAME)
 
-        executors!!.diskIO().execute({
-            val dbTravelSetList = database!!.travelSetDao().getAll()
-            executors!!.mainThread().execute({
+        getApplication<BaseApp>().mAppExecutors!!.diskIO().execute({
+            val dbTravelSetList = getApplication<BaseApp>().database!!.travelSetDao().getAll()
+            getApplication<BaseApp>().mAppExecutors!!.mainThread().execute({
                 travelSetList.addSource(dbTravelSetList, travelSetList::setValue)
 
             })
@@ -125,10 +120,10 @@ class SharedViewModel(app: Application) : AndroidViewModel(app) {
             if (null != dbTravelSet)
                 travelSet.removeSource(dbTravelSet!!)
 
-        executors!!.diskIO().execute({
-            dbTravelSet = database!!.travelSetDao().getByName(name)
+        getApplication<BaseApp>().mAppExecutors!!.diskIO().execute({
+            dbTravelSet = getApplication<BaseApp>().database!!.travelSetDao().getByName(name)
 
-            executors!!.mainThread().execute({
+            getApplication<BaseApp>().mAppExecutors!!.mainThread().execute({
                 try {
                     travelSet.addSource(dbTravelSet!!, travelSet::setValue)
                 } catch (e: IllegalArgumentException) {
@@ -150,9 +145,9 @@ class SharedViewModel(app: Application) : AndroidViewModel(app) {
         }
 
         if (hasChanged) {
-            executors!!.networkIO().execute({
+            getApplication<BaseApp>().mAppExecutors!!.networkIO().execute({
                 val t = isAddress(s)
-                executors!!.mainThread().execute({
+                getApplication<BaseApp>().mAppExecutors!!.mainThread().execute({
                     when (t[1]) {
                         "" -> {
                             when (a) {
@@ -205,10 +200,10 @@ class SharedViewModel(app: Application) : AndroidViewModel(app) {
             }
         }
 
-        executors!!.networkIO().execute({
+        getApplication<BaseApp>().mAppExecutors!!.networkIO().execute({
             val adr = getAddress(pos.lat, pos.lng)
 
-            executors!!.mainThread().execute({
+            getApplication<BaseApp>().mAppExecutors!!.mainThread().execute({
                 when (adr) {
                     "" -> {
                         when (b) {
@@ -286,8 +281,8 @@ class SharedViewModel(app: Application) : AndroidViewModel(app) {
 
     // region db
     internal fun update(travelSetEntity: TravelSetEntity) {
-        executors!!.diskIO().execute {
-            database!!.travelSetDao().insert(travelSetEntity)
+        getApplication<BaseApp>().mAppExecutors!!.diskIO().execute {
+            getApplication<BaseApp>().database!!.travelSetDao().insert(travelSetEntity)
         }
 
     }
@@ -296,10 +291,10 @@ class SharedViewModel(app: Application) : AndroidViewModel(app) {
         val t = TravelStatEntity()
         t.name = travelSet.value!!.name
         t.iter = travelSet.value!!.max
-        executors!!.diskIO().execute {
+        getApplication<BaseApp>().mAppExecutors!!.diskIO().execute {
             var d = 0.0
             val tmpLoc = Location("tmp")
-            val u = database!!.travelStampDao().get(t.name, t.iter)
+            val u = getApplication<BaseApp>().database!!.travelStampDao().get(t.name, t.iter)
             t.timestart = DateConverter.toDate(u[0].time!!).toString().split("GMT")[0]
             t.timeend = DateConverter.toDate(u[u.lastIndex].time!!).toString().split("GMT")[0]
             t.timed = DateConverter.compoundDuration((u[u.lastIndex].time!! - u[0].time!!) / 1000L)
@@ -317,19 +312,19 @@ class SharedViewModel(app: Application) : AndroidViewModel(app) {
             t.distance = if (d < 1000) "${d.roundToInt()} m" else "${(d / 1000).toFloat()} km"
             t.avgSpeed = "${((d / 1000) / ((u[u.lastIndex].time!! - u[0].time!!) / 3600)).toFloat()} km/h"
 
-            database!!.travelStatDao().insert(t)
+            getApplication<BaseApp>().database!!.travelStatDao().insert(t)
         }
     }
 
     private fun wipe(name: String) {
-        executors!!.diskIO().execute {
-            database!!.travelStampDao().wipe(name)
+        getApplication<BaseApp>().mAppExecutors!!.diskIO().execute {
+            getApplication<BaseApp>().database!!.travelStampDao().wipe(name)
         }
     }
 
     private fun records(name: String) {
-        executors!!.diskIO().execute {
-            database!!.travelStampDao().updateSet(name)
+        getApplication<BaseApp>().mAppExecutors!!.diskIO().execute {
+            getApplication<BaseApp>().database!!.travelStampDao().updateSet(name)
         }
     }
 
@@ -340,7 +335,7 @@ class SharedViewModel(app: Application) : AndroidViewModel(app) {
         val run = ArrayList<com.google.android.gms.maps.model.LatLng>()
         val alt = HashMap<Long, Double>()
         getApplication<BaseApp>().mAppExecutors!!.diskIO().execute {
-            val t= getApplication<BaseApp>().database.travelStampDao().get(name, iter)
+            val t= getApplication<BaseApp>().database!!.travelStampDao().get(name, iter)
                     t.forEach { it ->
                         alt[it.time!!] = it.altitude!!
                         run.add(com.google.android.gms.maps.model.LatLng(it.lat!!, it.lng!!)) }
@@ -353,7 +348,7 @@ class SharedViewModel(app: Application) : AndroidViewModel(app) {
 
     // region Files
     fun delete(name: String) {
-        executors!!.diskIO().execute {
+        getApplication<BaseApp>().mAppExecutors!!.diskIO().execute {
             val file1 = File("${getApplication<BaseApp>().filesDir.absolutePath}/$name${BuildConfig.RTE}")
             if (file1.exists())
                 file1.delete()
@@ -365,7 +360,7 @@ class SharedViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun write(bmp: Bitmap) {
-        executors!!.diskIO().execute({
+        getApplication<BaseApp>().mAppExecutors!!.diskIO().execute({
             val file = File("${getApplication<BaseApp>().filesDir.absolutePath}/${travel.value!!.name}${BuildConfig.PNG}")
             // avoid unnecessary
             if (!file.exists()) {
@@ -384,7 +379,7 @@ class SharedViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun write(travel: Travel) {
-        executors!!.diskIO().execute({
+        getApplication<BaseApp>().mAppExecutors!!.diskIO().execute({
             val file = File("${getApplication<BaseApp>().filesDir.absolutePath}/${travel.name}${BuildConfig.RTE}")
             // avoid unnecessary
             if (!file.exists()) {
@@ -408,7 +403,7 @@ class SharedViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun read(name: String) {
-        executors!!.diskIO().execute({
+        getApplication<BaseApp>().mAppExecutors!!.diskIO().execute({
             var tmpTravel: Travel? = null
             val inputStream: FileInputStream
             val inputStreamReader: InputStreamReader
