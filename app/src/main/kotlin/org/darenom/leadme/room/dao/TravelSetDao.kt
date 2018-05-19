@@ -1,8 +1,8 @@
-package org.darenom.leadme.db.dao
+package org.darenom.leadme.room.dao
 
 import android.arch.lifecycle.LiveData
 import android.arch.persistence.room.*
-import org.darenom.leadme.db.entities.TravelSetEntity
+import org.darenom.leadme.room.entities.TravelSetEntity
 
 /**
  * Created by adm on 01/02/2018.

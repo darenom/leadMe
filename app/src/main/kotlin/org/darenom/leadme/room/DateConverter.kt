@@ -1,4 +1,4 @@
-package org.darenom.leadme.db
+package org.darenom.leadme.room
 
 import android.arch.persistence.room.TypeConverter
 import java.util.*

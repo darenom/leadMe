@@ -13,8 +13,8 @@ import android.view.View
 import android.view.ViewGroup
 import org.darenom.leadme.R
 import org.darenom.leadme.databinding.FragmentTravelsetListBinding
-import org.darenom.leadme.db.entities.TravelSetEntity
-import org.darenom.leadme.db.model.TravelSet
+import org.darenom.leadme.room.entities.TravelSetEntity
+import org.darenom.leadme.room.model.TravelSet
 import org.darenom.leadme.ui.adapter.TravelSetAdapter
 import org.darenom.leadme.ui.callback.TravelSetClickCallback
 import org.darenom.leadme.ui.viewmodel.SharedViewModel

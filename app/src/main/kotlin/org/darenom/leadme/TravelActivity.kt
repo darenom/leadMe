@@ -1,12 +1,25 @@
 package org.darenom.leadme
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.app.Service
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.ServiceConnection
 import android.content.pm.PackageManager
+import android.net.ConnectivityManager
+import android.os.Build
 import android.os.Bundle
+import android.os.IBinder
 import android.provider.Settings
+import android.speech.tts.TextToSpeech
+import android.support.v4.app.NotificationCompat
+import android.support.v4.app.NotificationManagerCompat
+import android.support.v4.content.LocalBroadcastManager
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.Menu
@@ -21,13 +34,13 @@ import com.google.maps.model.DirectionsResult
 import com.google.maps.model.LatLng
 import com.google.maps.model.TravelMode
 import com.sothree.slidinguppanel.SlidingUpPanelLayout
-import kotlinx.android.synthetic.main.activity_splash.*
 import kotlinx.android.synthetic.main.activity_travel.*
-import org.darenom.leadme.db.DateConverter
-import org.darenom.leadme.db.entities.TravelSetEntity
 import org.darenom.leadme.model.Travel
 import org.darenom.leadme.model.TravelSegment
+import org.darenom.leadme.room.DateConverter
+import org.darenom.leadme.room.entities.TravelSetEntity
 import org.darenom.leadme.service.TravelService
+import org.darenom.leadme.service.TravelService.Companion.ARRIVED
 import org.darenom.leadme.service.TravelService.Companion.travel
 import org.darenom.leadme.service.TravelService.Companion.travelling
 import org.darenom.leadme.ui.SaveTravelDialog
@@ -67,23 +80,50 @@ class TravelActivity : AppCompatActivity(),
         const val PERM_MAP = 104
         const val CHECK_MAP = 44
 
+        const val NOTIF_ID = 200
+
     }
 
+    var travelService: TravelService? = null
+    val isNetworkAvailable: Boolean
+        get() {
+            val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+            val activeNetworkInfo = connectivityManager.activeNetworkInfo
+            return activeNetworkInfo != null && activeNetworkInfo.isConnected
+        }
+
     private var svm: SharedViewModel? = null
+    private var travelCnx: ServiceConnection = object : ServiceConnection {
+        override fun onServiceConnected(className: ComponentName, service: IBinder) {
+            Log.e("BaseApp", "Connected to travelService")
+            val binder = service as TravelService.TravelServiceBinder
+            travelService = binder.service
+            travelService!!.onStartCommand(null, Service.START_FLAG_RETRY, 10)
+
+            startActivityForResult(
+                    Intent(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA),
+                    TravelActivity.CHECK_TTS_ACCESS)
+        }
+
+        override fun onServiceDisconnected(arg0: ComponentName) {
+            Log.e("BaseApp", "Disconnected from travelService")
+            travelService = null
+        }
+    }
 
     // region LifeCycle
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_travel)
+        createNotificationChannel()
+        bindService(Intent(applicationContext, TravelService::class.java),
+                travelCnx, Context.BIND_AUTO_CREATE)
 
+        setContentView(R.layout.activity_travel)
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayShowTitleEnabled(true)
 
-        sliding_panel.addPanelSlideListener(this)
-
         svm = ViewModelProviders.of(this).get(SharedViewModel::class.java)
         subscribeUI()
-
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -167,22 +207,38 @@ class TravelActivity : AppCompatActivity(),
         }
         return false
     }
+
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        if ((ARRIVED.contentEquals(intent!!.action)))
+            startStopTravel()
+    }
+
     // endregion
 
     // region permissions
     var locCheck = false
+    var locPerm = false
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         when (requestCode) {
+
+            TravelActivity.CHECK_TTS_ACCESS -> {
+                if (resultCode == TextToSpeech.Engine.CHECK_VOICE_DATA_PASS) {
+                    travelService!!.startTTS()
+                } else
+                    startActivity(Intent(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA))
+            }
+
             CHECK_NET_ACCESS -> {
-                if (!(application as BaseApp).isNetworkAvailable) {
+                if (!isNetworkAvailable) {
                     Toast.makeText(this, getString(R.string.cant_net), Toast.LENGTH_SHORT).show()
                 }
             }
 
             CHECK_START_MOTION -> {
                 locCheck = false
-                if ((application as BaseApp).travelService!!.hasPos) {
+                if (travelService!!.hasPos) {
                     startStopTravel()
                 } else {
                     Toast.makeText(this, getString(R.string.cant_travel), Toast.LENGTH_SHORT).show()
@@ -191,16 +247,15 @@ class TravelActivity : AppCompatActivity(),
 
             CHECK_SET_HERE -> {
                 locCheck = false
-                if (!(application as BaseApp).travelService!!.hasPos) {
+                if (!travelService!!.hasPos) {
                     Toast.makeText(this, getString(R.string.cant_here), Toast.LENGTH_SHORT).show()
                 }
             }
             CHECK_MAP -> {
                 locCheck = false
-                if (!(application as BaseApp).travelService!!.hasPos) {
+                if (!travelService!!.hasPos) {
                     Toast.makeText(this, getString(R.string.cant_here), Toast.LENGTH_SHORT).show()
                 }
-
             }
         }
     }
@@ -210,11 +265,13 @@ class TravelActivity : AppCompatActivity(),
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         when (requestCode) {
             PERM_SET_HERE -> {
+                locPerm = false
                 if (grantResults.isEmpty() || grantResults[0] != PackageManager.PERMISSION_GRANTED) {
                     Toast.makeText(this, getString(R.string.wont_here), Toast.LENGTH_SHORT).show()
                 }
             }
             PERM_START_MOTION -> {
+                locPerm = false
                 if (grantResults.isEmpty() || grantResults[0] != PackageManager.PERMISSION_GRANTED) {
                     Toast.makeText(this, getString(R.string.wont_travel), Toast.LENGTH_SHORT).show()
                 } else {
@@ -222,6 +279,7 @@ class TravelActivity : AppCompatActivity(),
                 }
             }
             PERM_MAP -> {
+                locPerm = false
                 if (grantResults.isEmpty() || grantResults[0] != PackageManager.PERMISSION_GRANTED) {
                     Toast.makeText(this, getString(R.string.wont_here), Toast.LENGTH_SHORT).show()
                 }
@@ -231,10 +289,72 @@ class TravelActivity : AppCompatActivity(),
     // endregion
 
     // region UI
+    fun setRun(name: String, iter: Int) {
+        svm!!.getStampRecords(name, iter)
+    }
+
     private fun closeKeyboard() {
         if (null != this.currentFocus)
             (getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager)
                     .hideSoftInputFromWindow(this.currentFocus.windowToken, 0)
+    }
+
+    private fun subscribeUI() {
+
+        sliding_panel.addPanelSlideListener(this)
+
+        travel.observe(this, Observer { it ->
+            if (null != it) {
+                TravelService.ts = TravelSegment(it)
+                if (it.name.contentEquals(BuildConfig.TMP_NAME)) {
+                    svm!!.write(it)     // save tmp file only
+                    supportActionBar?.setTitle(R.string.app_name)
+                } else
+                    supportActionBar?.title = it.name
+                (panel as PanelFragment).setPanel(1)
+                fabState(0)
+            } else {
+                TravelService.ts = null
+                supportActionBar?.setTitle(R.string.app_name)
+                (panel as PanelFragment).setPanel(0)
+                fabState(2)
+            }
+            sliding_panel.panelState = SlidingUpPanelLayout.PanelState.COLLAPSED
+        })
+
+        svm!!.travelSetList.observe(this, Observer<List<TravelSetEntity>> { it ->
+            if (null != it) {
+                fab.visibility = View.GONE
+                if (!TravelService.travelling)
+                    when (sliding_panel.panelState) {
+                        SlidingUpPanelLayout.PanelState.EXPANDED ->
+                            if (!(svm!!.name.value!!.contentEquals(BuildConfig.TMP_NAME)
+                                            && null == travel.value))
+                                fab.visibility = View.VISIBLE
+                        SlidingUpPanelLayout.PanelState.COLLAPSED ->
+                            if (fab.tag == "2")
+                                if (svm!!.name.value!!.contentEquals(BuildConfig.TMP_NAME)
+                                        && null == travel.value)
+                                    if (svm!!.travelSetList.value!!.isNotEmpty())
+                                        fab.visibility = View.VISIBLE
+                        else -> {
+                        }
+                    }
+            }
+        })
+
+        svm!!.name.observe(this, Observer { it ->
+            if (null != it) {
+                svm!!.read(it) // set Travel
+                svm!!.monitor(it) // set TravelSet
+
+            }
+        })
+
+        svm!!.travelAlt.observe(this, Observer {
+            if (null != it)
+                (panel as PanelFragment).statFragment!!.showGraph(it)
+        })
     }
 
     // panel
@@ -279,6 +399,7 @@ class TravelActivity : AppCompatActivity(),
 
     }
 
+    // UI click
     fun swapFromTo(v: View) {
         if (v.id == R.id.search_swap) {
             val tmpAd = svm!!.travelSet.value!!.originAddress
@@ -342,64 +463,7 @@ class TravelActivity : AppCompatActivity(),
             }
         }
     }
-
-    private fun subscribeUI() {
-
-        travel.observe(this, Observer { it ->
-            if (null != it) {
-                TravelService.ts = TravelSegment(it)
-                if (it.name.contentEquals(BuildConfig.TMP_NAME)) {
-                    svm!!.write(it)     // save tmp file only
-                    supportActionBar?.setTitle(R.string.app_name)
-                } else
-                    supportActionBar?.title = it.name
-                (panel as PanelFragment).setPanel(1)
-                fabState(0)
-            } else {
-                TravelService.ts = null
-                supportActionBar?.setTitle(R.string.app_name)
-                (panel as PanelFragment).setPanel(0)
-                fabState(2)
-            }
-            sliding_panel.panelState = SlidingUpPanelLayout.PanelState.COLLAPSED
-        })
-
-        svm!!.travelSetList.observe(this, Observer<List<TravelSetEntity>> { it ->
-            if (null != it) {
-                fab.visibility = View.GONE
-                if (!TravelService.travelling)
-                    when (sliding_panel.panelState) {
-                        SlidingUpPanelLayout.PanelState.EXPANDED ->
-                            if (!(svm!!.name.value!!.contentEquals(BuildConfig.TMP_NAME)
-                                            && null == travel.value))
-                                fab.visibility = View.VISIBLE
-                        SlidingUpPanelLayout.PanelState.COLLAPSED ->
-                            if (fab.tag == "2")
-                                if (svm!!.name.value!!.contentEquals(BuildConfig.TMP_NAME)
-                                        && null == travel.value)
-                                    if (svm!!.travelSetList.value!!.isNotEmpty())
-                                        fab.visibility = View.VISIBLE
-                    }
-            }
-        })
-
-        svm!!.name.observe(this, Observer { it ->
-            if (null != it) {
-                svm!!.read(it) // set Travel
-                svm!!.monitor(it) // set TravelSet
-
-            }
-        })
-
-        svm!!.travelAlt.observe(this, Observer {
-            if (null != it)
-                (panel as PanelFragment).statFragment!!.showGraph(it)
-        })
-    }
-
-    fun setRun(name: String, iter: Int) {
-        svm!!.getStampRecords(name, iter)
-    }
+    // endregion
 
     // DirectionsAPI
     private fun directions() {
@@ -431,14 +495,14 @@ class TravelActivity : AppCompatActivity(),
 
     override fun onFailure(e: Throwable?) {
         Log.w(TravelMapFragment::class.java.simpleName, e?.message)
-        if (!(application as BaseApp).isNetworkAvailable)
+        if (!isNetworkAvailable)
             startActivityForResult(Intent(Settings.ACTION_WIFI_SETTINGS), CHECK_NET_ACCESS)
     }
 
     override fun onResult(result: DirectionsResult?) {
         if (result!!.routes.isNotEmpty()) {
 
-            (application as BaseApp).mAppExecutors!!.diskIO().execute({
+            AppExecutors.getInstance().diskIO().execute({
                 val tmpTravel = Travel().transform(result.routes[0])
                 var d = 0L
                 var t = 0L
@@ -447,7 +511,7 @@ class TravelActivity : AppCompatActivity(),
                     t += it.duration.inSeconds
                 }
 
-                (application as BaseApp).mAppExecutors!!.mainThread().execute({
+                AppExecutors.getInstance().mainThread().execute({
                     TravelService.travel.value = tmpTravel
                     svm!!.travelSet.value!!.distance = if (d > 999) "${d / 1000} km" else "$d m"
                     svm!!.travelSet.value!!.estimatedTime = DateConverter.compoundDuration(t)
@@ -469,6 +533,11 @@ class TravelActivity : AppCompatActivity(),
 
     internal fun startStopTravel() {
         if (TravelService.travelling) {
+
+            // underrate locations
+            travelService!!.stopMotion()
+
+            // update values
             svm!!.travelSet.value!!.max += 1
             if (svm!!.travelSet.value!!.name.contentEquals(BuildConfig.TMP_NAME))
                 SaveTravelDialog().show(supportFragmentManager, getString(R.string.app_name)) // new travel
@@ -476,10 +545,26 @@ class TravelActivity : AppCompatActivity(),
                 svm!!.update(svm!!.travelSet.value!!) // existing one
                 svm!!.createStatRecord()
             }
-            (application as BaseApp).travelService!!.stopMotion()
-        } else
-            (application as BaseApp).travelService!!.startMotion(svm!!.travelSet.value!!.max + 1)
+
+        } else {
+            travelService!!.startMotion(svm!!.travelSet.value!!.max + 1)
+        }
+
+
+
+
+
     }
 
-
+    private fun createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(getString(R.string.app_name), getString(R.string.app_name), NotificationManager.IMPORTANCE_DEFAULT)
+            channel.description = getString(R.string.app_name)
+            val notificationManager = getSystemService(NotificationManager::class.java)
+            notificationManager.createNotificationChannel(channel)
+        }
+    }
 }
+
+
+

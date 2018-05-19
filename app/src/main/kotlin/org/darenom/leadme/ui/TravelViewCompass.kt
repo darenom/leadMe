@@ -21,9 +21,6 @@ class TravelViewCompass @JvmOverloads constructor(
 
     private var currentCompassDegree = 0f
     private var currentDirectionDegree = 0f
-    override fun onSaveInstanceState(): Parcelable {
-        return super.onSaveInstanceState()
-    }
 
     // set compass angle and levels
     private fun setCompassOrientation(vararg orientation: Float) {

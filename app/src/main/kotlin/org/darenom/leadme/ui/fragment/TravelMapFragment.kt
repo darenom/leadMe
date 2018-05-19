@@ -1,6 +1,7 @@
 package org.darenom.leadme.ui.fragment
 
 import android.Manifest
+import android.app.PendingIntent
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
 import android.content.BroadcastReceiver
@@ -14,6 +15,8 @@ import android.os.Bundle
 import android.provider.Settings
 import android.support.v4.app.ActivityCompat
 import android.support.v4.app.Fragment
+import android.support.v4.app.NotificationCompat
+import android.support.v4.app.NotificationManagerCompat
 import android.support.v4.content.ContextCompat
 import android.support.v4.content.LocalBroadcastManager
 import android.view.LayoutInflater
@@ -27,9 +30,8 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
 import com.google.maps.android.PolyUtil
-import kotlinx.android.synthetic.main.activity_splash.*
 import kotlinx.android.synthetic.main.layout_view_compass.*
-import org.darenom.leadme.BaseApp
+import org.darenom.leadme.AppExecutors
 import org.darenom.leadme.R
 import org.darenom.leadme.TravelActivity
 import org.darenom.leadme.TravelActivity.Companion.CHECK_MAP
@@ -38,9 +40,10 @@ import org.darenom.leadme.TravelActivity.Companion.CHECK_START_MOTION
 import org.darenom.leadme.TravelActivity.Companion.PERM_MAP
 import org.darenom.leadme.TravelActivity.Companion.PERM_START_MOTION
 import org.darenom.leadme.databinding.FragmentMapBinding
-import org.darenom.leadme.db.entities.TravelSetEntity
 import org.darenom.leadme.model.Travel
+import org.darenom.leadme.room.entities.TravelSetEntity
 import org.darenom.leadme.service.TravelService
+import org.darenom.leadme.service.TravelService.Companion.ARRIVED
 import org.darenom.leadme.service.TravelService.Companion.travel
 import org.darenom.leadme.service.TravelService.Companion.travelling
 import org.darenom.leadme.ui.viewmodel.SharedViewModel
@@ -70,27 +73,71 @@ class TravelMapFragment : Fragment(), OnMapReadyCallback,
             when (intent.action) {
                 TravelService.LOCATION_UP -> {
                     activity!!.invalidateOptionsMenu()
-                    locationButton()
+                    locationButtonState()
                 }
                 TravelService.LOCATION_DOWN -> {
                     activity!!.invalidateOptionsMenu()
-                    locationButton()
+                    locationButtonState()
                 }
                 TravelService.NO_MOTION -> {
-                    if (!(activity!!.application as BaseApp).travelService!!.hasPos)
+                    if (!(activity!! as TravelActivity).travelService!!.hasPos)
                         if (!(activity!! as TravelActivity).locCheck) {
                             (activity!! as TravelActivity).locCheck = true
                             activity!!.startActivityForResult(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS), CHECK_START_MOTION)
                         } else
                             if (ContextCompat.checkSelfPermission(context,
                                             Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED)
-                                ActivityCompat.requestPermissions(activity!!,
-                                        arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                                        PERM_START_MOTION)
+                                if (!(activity!! as TravelActivity).locPerm) {
+                                    (activity!! as TravelActivity).locPerm = true
+                                    ActivityCompat.requestPermissions(activity!!,
+                                            arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                                            PERM_START_MOTION)
+                                }
                 }
 
                 TravelService.REFRESH_UI -> {
                     activity!!.invalidateOptionsMenu()
+                    // notify user, travel has started or stopped
+                    if (travelling){
+                        NotificationManagerCompat.from(activity!!.applicationContext).notify(
+                                TravelActivity.NOTIF_ID,
+                                NotificationCompat.Builder(activity!!.applicationContext, getString(R.string.app_name))
+                                        .setSmallIcon(R.drawable.ic_notif)
+                                        .setContentTitle(getString(R.string.app_name))
+                                        .setContentText(getString(R.string.travelling))
+                                        .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                                        .setContentIntent(PendingIntent.getActivity(
+                                                activity!!.applicationContext,
+                                                0,
+                                                Intent(activity!!.applicationContext, TravelActivity::class.java),
+                                                0)
+                                        ).addAction(
+                                                R.drawable.ic_pause,
+                                                getString(R.string.stop),
+                                                PendingIntent.getActivity(
+                                                        activity!!.applicationContext,
+                                                        0,
+                                                        Intent(activity!!.applicationContext, TravelActivity::class.java).setAction(ARRIVED),
+                                                        0
+                                                )
+                                        ).build()
+                        )
+                    } else {
+                        NotificationManagerCompat.from(activity!!.applicationContext).notify(
+                                TravelActivity.NOTIF_ID,
+                                NotificationCompat.Builder(activity!!.applicationContext, getString(R.string.app_name))
+                                        .setSmallIcon(R.drawable.ic_notif)
+                                        .setContentTitle(getString(R.string.app_name))
+                                        .setContentText(getString(R.string.notif_main_msg))
+                                        .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                                        .setContentIntent(PendingIntent.getActivity(
+                                                activity!!.applicationContext,
+                                                0,
+                                                Intent(activity!!.applicationContext, TravelActivity::class.java),
+                                                0)
+                                        ).build()
+                        )
+                    }
                 }
             // point to north
                 TravelService.ORIENTATION_CHANGED -> {
@@ -134,7 +181,7 @@ class TravelMapFragment : Fragment(), OnMapReadyCallback,
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        mBinding.hasCompass = (activity!!.application as BaseApp).travelService?.hasCompass ?: false
+        mBinding.hasCompass = (activity!! as TravelActivity).travelService?.hasCompass ?: false
         subscribeUI()
 
     }
@@ -167,8 +214,8 @@ class TravelMapFragment : Fragment(), OnMapReadyCallback,
         super.onResume()
         if (null != gm) {
             activity!!.invalidateOptionsMenu()
-            if ((activity!!.application as BaseApp).travelService!!.hasPos) {
-                locationButton()
+            if ((activity!! as TravelActivity).travelService!!.hasPos) {
+                locationButtonState()
             } else {
                 gm!!.uiSettings.isMyLocationButtonEnabled = false
                 mBinding.showDirection = false
@@ -194,7 +241,7 @@ class TravelMapFragment : Fragment(), OnMapReadyCallback,
         svm!!.optCompass.observe(this, Observer { it ->
             if (null != it) {
                 mBinding.showCompass = it
-                (activity!!.application as BaseApp).travelService?.enableCompass(it, 0)
+                (activity!! as TravelActivity).travelService?.enableCompass(it, 0)
             }
         })
 
@@ -236,12 +283,15 @@ class TravelMapFragment : Fragment(), OnMapReadyCallback,
 
     // region Listeners
     override fun onMyLocationButtonClick(): Boolean {
-        if ((activity!!.application as BaseApp).travelService!!.hasPos) {
+        if ((activity!! as TravelActivity).travelService!!.hasPos) {
             if (ContextCompat.checkSelfPermission(context!!,
                             Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED)
-                ActivityCompat.requestPermissions(activity!!,
-                        arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                        PERM_MAP)
+                if (!(activity!! as TravelActivity).locPerm) {
+                    (activity!! as TravelActivity).locPerm = true
+                    ActivityCompat.requestPermissions(activity!!,
+                            arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                            PERM_MAP)
+                }
         } else
             if (!(activity!! as TravelActivity).locCheck) {
                 (activity!! as TravelActivity).locCheck = true
@@ -262,8 +312,6 @@ class TravelMapFragment : Fragment(), OnMapReadyCallback,
 
             gm!!.uiSettings.isMapToolbarEnabled = false
 
-            locationButton()
-
             if (!travelling) {
                 // observer may occur before map is ready so...
                 if (null != travel.value) {
@@ -272,28 +320,29 @@ class TravelMapFragment : Fragment(), OnMapReadyCallback,
                     drawSet(svm!!.travelSet.value!!)
                 }
             }
-
-            (activity!!.application as BaseApp).mActivity!!.finish()
         }
     }
 
-    private fun locationButton() {
+    private fun locationButtonState() {
         if (null != gm) {
 
             gm!!.isMyLocationEnabled = false
             gm!!.uiSettings.isMyLocationButtonEnabled = false
             mBinding.showDirection = false
 
-            if ((activity!!.application as BaseApp).travelService!!.hasPos) {
+            if ((activity!! as TravelActivity).travelService!!.hasPos) {
                 gm!!.isMyLocationEnabled = true
                 gm!!.uiSettings.isMyLocationButtonEnabled = true
             } else
                 if (ContextCompat.checkSelfPermission(context!!,
                                 Manifest.permission.ACCESS_FINE_LOCATION)
                         != PackageManager.PERMISSION_GRANTED) {
-                    ActivityCompat.requestPermissions(activity!!,
-                            arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                            PERM_MAP)
+                    if (!(activity!! as TravelActivity).locPerm) {
+                        (activity!! as TravelActivity).locPerm = true
+                        ActivityCompat.requestPermissions(activity!!,
+                                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                                PERM_MAP)
+                    }
                 } else {
                     if (!(activity!! as TravelActivity).locCheck) {
                         (activity!! as TravelActivity).locCheck = true
@@ -308,7 +357,7 @@ class TravelMapFragment : Fragment(), OnMapReadyCallback,
         // prevent click if travel is loaded
         if (null == travel.value) {
             // check needed data access
-            if (!(activity!!.application as BaseApp).isNetworkAvailable) {
+            if (!(activity!! as TravelActivity).isNetworkAvailable) {
                 activity!!.startActivityForResult(Intent(Settings.ACTION_WIFI_SETTINGS), CHECK_NET_ACCESS)
             } else {
                 if (infoWindowId.contentEquals("")) {
@@ -481,10 +530,10 @@ class TravelMapFragment : Fragment(), OnMapReadyCallback,
     private fun drawTravel(travel: Travel) {
         if (null != gm) {
             gm!!.clear()
-            (activity!!.application as BaseApp).mAppExecutors!!.diskIO().execute {
+            AppExecutors.getInstance().diskIO().execute {
                 if (travel.markerList.isEmpty())
                     travel.computeDists()
-                (activity!!.application as BaseApp).mAppExecutors!!.mainThread().execute {
+                AppExecutors.getInstance().mainThread().execute {
                     travel.markerList.forEachIndexed { index, it ->
                         gm!!.addMarker(it)
                         gm!!.addPolyline(PolylineOptions().width(3f).color(R.color.colorPrimary)

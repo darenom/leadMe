@@ -1,11 +1,11 @@
-package org.darenom.leadme.db.entities
+package org.darenom.leadme.room.entities
 
 import android.arch.persistence.room.ColumnInfo
 import android.arch.persistence.room.Entity
 import android.arch.persistence.room.Ignore
 import android.arch.persistence.room.PrimaryKey
 import org.darenom.leadme.BuildConfig
-import org.darenom.leadme.db.model.TravelSet
+import org.darenom.leadme.room.model.TravelSet
 
 /**
  * Created by adm on 01/02/2018.

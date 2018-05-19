@@ -12,12 +12,13 @@ import android.view.ViewGroup
 import com.jjoe64.graphview.series.DataPoint
 import com.jjoe64.graphview.series.LineGraphSeries
 import kotlinx.android.synthetic.main.fragment_travelstat.*
+import org.darenom.leadme.AppExecutors
 import org.darenom.leadme.R
 import org.darenom.leadme.TravelActivity
 import org.darenom.leadme.databinding.FragmentTravelstatBinding
-import org.darenom.leadme.db.AppDatabase
-import org.darenom.leadme.db.entities.TravelStatEntity
-import org.darenom.leadme.db.model.TravelStat
+import org.darenom.leadme.room.AppDatabase
+import org.darenom.leadme.room.entities.TravelStatEntity
+import org.darenom.leadme.room.model.TravelStat
 import org.darenom.leadme.ui.adapter.TravelStatAdapter
 import org.darenom.leadme.ui.callback.TravelStatClickCallback
 import org.darenom.leadme.ui.viewmodel.TravelStatViewModel
@@ -54,7 +55,10 @@ class TravelStatFragment : Fragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        val factory = TravelStatViewModel.Factory(activity!!.application, arguments!!.getString(KEY_TRAVELSET_NAME))
+        val factory = TravelStatViewModel.Factory(
+                activity!!.application,
+                AppDatabase.getInstance(activity!!.applicationContext, AppExecutors.getInstance()),
+                arguments!!.getString(KEY_TRAVELSET_NAME))
         val model = ViewModelProviders.of(this, factory).get(TravelStatViewModel::class.java)
         subscribeToModel(model)
     }

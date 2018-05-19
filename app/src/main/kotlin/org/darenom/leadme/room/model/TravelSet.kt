@@ -1,4 +1,4 @@
-package org.darenom.leadme.db.model
+package org.darenom.leadme.room.model
 
 /**
  * Created by adm on 12/02/2018.

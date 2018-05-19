@@ -7,7 +7,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import org.darenom.leadme.R
 import org.darenom.leadme.databinding.FragmentTravelsetBinding
-import org.darenom.leadme.db.model.TravelSet
+import org.darenom.leadme.room.model.TravelSet
 import org.darenom.leadme.ui.callback.TravelSetClickCallback
 
 

@@ -6,7 +6,7 @@
 
         <variable
             name="travelStat"
-            type="org.darenom.leadme.db.model.TravelStat" />
+            type="org.darenom.leadme.room.model.TravelStat" />
 
         <variable
             name="callback"

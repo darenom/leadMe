@@ -7,7 +7,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import org.darenom.leadme.R
 import org.darenom.leadme.databinding.ItemTravelstatBinding
-import org.darenom.leadme.db.model.TravelStat
+import org.darenom.leadme.room.model.TravelStat
 import org.darenom.leadme.ui.callback.TravelStatClickCallback
 
 

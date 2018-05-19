@@ -34,4 +34,18 @@ class AppExecutors private constructor(private val mDiskIO: Executor, private va
             mainThreadHandler.post(command)
         }
     }
+
+    companion object {
+        private var sInstance: AppExecutors? = null
+        fun getInstance(): AppExecutors {
+            if (sInstance == null) {
+                synchronized(AppExecutors::class.java) {
+                    if (sInstance == null) {
+                        sInstance = AppExecutors()
+                    }
+                }
+            }
+            return sInstance!!
+        }
+    }
 }

@@ -9,11 +9,11 @@ import android.support.v4.content.ContextCompat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ArrayAdapter
-import kotlinx.android.synthetic.main.fragment_travelset.*
+import org.darenom.leadme.AppExecutors
 import org.darenom.leadme.R
 import org.darenom.leadme.databinding.FragmentTravelsetBinding
-import org.darenom.leadme.db.entities.TravelSetEntity
+import org.darenom.leadme.room.AppDatabase
+import org.darenom.leadme.room.entities.TravelSetEntity
 import org.darenom.leadme.ui.viewmodel.TravelSetViewModel
 
 
@@ -32,7 +32,10 @@ class TravelSetFragment : Fragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        val factory = TravelSetViewModel.Factory(activity!!.application, arguments!!.getString(KEY_TRAVELSET_NAME))
+        val factory = TravelSetViewModel.Factory(
+                activity!!.application,
+                AppDatabase.getInstance(activity!!.applicationContext, AppExecutors.getInstance()),
+                arguments!!.getString(KEY_TRAVELSET_NAME))
         val model = ViewModelProviders.of(this, factory).get(TravelSetViewModel::class.java)
         subscribeToModel(model)
     }

@@ -14,7 +14,7 @@
     <string name="hint_destination">arrivée</string>
     <string name="hint_waypoint">point de passage</string>
     <string name="searching_loc">En attente de position</string>
-    <string name="loading">Chargement...</string>
+    <string name="loading">Chargement…</string>
     <string name="travelset_estimatedtime">"Durée : "</string>
     <string name="travelset_distance">"Distance : "</string>
     <string name="travelstat_time_start">"Début : "</string>
@@ -27,4 +27,6 @@
     <string name="same_name">Nom fichier existant</string>
     <string name="loading_comments">loading comments</string>
     <string name="notif_main_msg">est actif</string>
+    <string name="travelling">en trajet…</string>
+    <string name="stop">Stop</string>
 </resources>

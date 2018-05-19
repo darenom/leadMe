@@ -1,4 +1,4 @@
-package org.darenom.leadme.db
+package org.darenom.leadme.room
 
 /**
  * Created by adm on 01/02/2018.
@@ -16,12 +16,12 @@ import android.content.Context
 import android.support.annotation.VisibleForTesting
 import org.darenom.leadme.AppExecutors
 import org.darenom.leadme.BuildConfig
-import org.darenom.leadme.db.dao.TravelSetDao
-import org.darenom.leadme.db.dao.TravelStampDao
-import org.darenom.leadme.db.dao.TravelStatDao
-import org.darenom.leadme.db.entities.TravelSetEntity
-import org.darenom.leadme.db.entities.TravelStampEntity
-import org.darenom.leadme.db.entities.TravelStatEntity
+import org.darenom.leadme.room.dao.TravelSetDao
+import org.darenom.leadme.room.dao.TravelStampDao
+import org.darenom.leadme.room.dao.TravelStatDao
+import org.darenom.leadme.room.entities.TravelSetEntity
+import org.darenom.leadme.room.entities.TravelStampEntity
+import org.darenom.leadme.room.entities.TravelStatEntity
 import android.arch.persistence.room.migration.Migration
 
 
@@ -56,8 +56,6 @@ abstract class AppDatabase : RoomDatabase() {
     private fun setDatabaseCreated() {
         mIsDatabaseCreated.postValue(true)
     }
-
-
 
     companion object {
 

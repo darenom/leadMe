@@ -1,4 +1,4 @@
-package org.darenom.leadme.db.model
+package org.darenom.leadme.room.model
 
 import android.arch.persistence.room.ColumnInfo
 

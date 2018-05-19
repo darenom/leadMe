@@ -1,8 +1,8 @@
-package org.darenom.leadme.db.entities
+package org.darenom.leadme.room.entities
 
 import android.arch.persistence.room.*
 import org.darenom.leadme.BuildConfig
-import org.darenom.leadme.db.model.TravelStat
+import org.darenom.leadme.room.model.TravelStat
 
 
 /**

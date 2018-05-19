@@ -20,7 +20,10 @@ import android.view.inputmethod.EditorInfo
 import android.widget.*
 import com.google.maps.model.LatLng
 import kotlinx.android.synthetic.main.fragment_maker.*
-import org.darenom.leadme.*
+import org.darenom.leadme.AppExecutors
+import org.darenom.leadme.BuildConfig
+import org.darenom.leadme.R
+import org.darenom.leadme.TravelActivity
 import org.darenom.leadme.databinding.FragmentMakerBinding
 import org.darenom.leadme.service.TravelService
 import org.darenom.leadme.service.TravelService.Companion.travel
@@ -30,6 +33,22 @@ import org.darenom.leadme.ui.adapter.helper.SimpleItemTouchHelperCallback
 import org.darenom.leadme.ui.callback.WaypointsChanged
 import org.darenom.leadme.ui.viewmodel.SharedViewModel
 import java.util.*
+
+/**
+ * editText are used to  input values
+ * one has 2 start Drawable:
+ *      empty       -> input current location
+ *      not empty   -> clear text and position
+ *
+ * losing focus starts geocoding adress and location resolution
+ * focus order is origin, destination, waypoints...
+ *
+ * origin, destination editText are in/out
+ * waypoints are shown in recycler with WaypointAdapter and ItemTouchHelper
+ * items can be :
+ *      moved, up/down
+ *      removed, swipe ->
+ */
 
 
 class TravelMakerFragment : Fragment(), WaypointsChanged {
@@ -71,7 +90,7 @@ class TravelMakerFragment : Fragment(), WaypointsChanged {
                             svm!!.travelSet.value!!.destinationAddress.isEmpty() ->
                                 edtTo.requestFocus()
                             v.text.toString().isNotEmpty() ->
-                                (activity!!.application as BaseApp).mAppExecutors!!.mainThread()
+                                AppExecutors.getInstance().mainThread()
                                         .execute({ edtWaypoint.requestFocus() })
                         }
 
@@ -244,7 +263,7 @@ class TravelMakerFragment : Fragment(), WaypointsChanged {
     }
 
     private fun setPoint(i: Int, s: String) {
-        if ((activity!!.application as BaseApp).isNetworkAvailable) {
+        if ((activity!! as TravelActivity).isNetworkAvailable) {
             val a: SharedViewModel.Companion.PointType? = when (i) {
                 R.id.edtFrom -> SharedViewModel.Companion.PointType.ORIGIN
                 R.id.edtTo -> SharedViewModel.Companion.PointType.DESTINATION
@@ -263,7 +282,7 @@ class TravelMakerFragment : Fragment(), WaypointsChanged {
 
     private fun setLocationText(id: Int) {
 
-        if ((activity!!.application as BaseApp).travelService!!.hasPos) {
+        if ((activity!! as TravelActivity).travelService!!.hasPos) {
             if (null != TravelService.here) {
                 when (id) {
                     R.id.edtFrom -> svm!!.setLocationAs(SharedViewModel.Companion.PointType.ORIGIN,
@@ -283,12 +302,14 @@ class TravelMakerFragment : Fragment(), WaypointsChanged {
                 if (!(activity!! as TravelActivity).locCheck) {
                     (activity!! as TravelActivity).locCheck = true
                     startActivityForResult(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS), TravelActivity.CHECK_SET_HERE)
-                }
-            else
-            // missing perm
-                ActivityCompat.requestPermissions(activity!!,
-                        arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                        TravelActivity.PERM_SET_HERE)
+                } else
+                // missing perm
+                    if (!(activity!! as TravelActivity).locPerm) {
+                        (activity!! as TravelActivity).locPerm = true
+                        ActivityCompat.requestPermissions(activity!!,
+                                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                                TravelActivity.PERM_SET_HERE)
+                    }
         }
     }
 
@@ -319,6 +340,7 @@ class TravelMakerFragment : Fragment(), WaypointsChanged {
         }
     }
 
+    // run/bike/car/transit spinner adapter
     inner class TravelModeAdapter(context: Context, resource: Int) : ArrayAdapter<String>(context, resource) {
 
         inner class ViewHolder constructor(context: Context) {

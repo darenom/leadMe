@@ -5,9 +5,8 @@ import android.arch.lifecycle.AndroidViewModel
 import android.arch.lifecycle.MediatorLiveData
 import android.arch.lifecycle.ViewModel
 import android.arch.lifecycle.ViewModelProvider
-import org.darenom.leadme.BaseApp
-import org.darenom.leadme.db.AppDatabase
-import org.darenom.leadme.db.entities.TravelSetEntity
+import org.darenom.leadme.room.AppDatabase
+import org.darenom.leadme.room.entities.TravelSetEntity
 
 
 /**
@@ -15,22 +14,26 @@ import org.darenom.leadme.db.entities.TravelSetEntity
  */
 
 
-class TravelSetViewModel(application: Application, name: String)
+class TravelSetViewModel(application: Application, db: AppDatabase, name: String)
     : AndroidViewModel(application) {
 
     var observableTravelSet: MediatorLiveData<TravelSetEntity> = MediatorLiveData()
 
     init {
         observableTravelSet.addSource<TravelSetEntity>(
-                (application as BaseApp).database!!.travelSetDao()
+                db.travelSetDao()
                         .getByName(name), { observableTravelSet.setValue(it) })
     }
 
-    class Factory(private val mApplication: Application, private val name: String) : ViewModelProvider.NewInstanceFactory() {
+    class Factory(
+            private val mApplication: Application,
+            private val db: AppDatabase,
+            private val name: String
+    ) : ViewModelProvider.NewInstanceFactory() {
 
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return TravelSetViewModel(mApplication, name) as T
+            return TravelSetViewModel(mApplication, db, name) as T
         }
     }
 }

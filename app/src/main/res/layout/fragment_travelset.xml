@@ -11,7 +11,7 @@
 
         <variable
             name="travelSet"
-            type="org.darenom.leadme.db.model.TravelSet" />
+            type="org.darenom.leadme.room.model.TravelSet" />
 
         <variable
             name="callback"

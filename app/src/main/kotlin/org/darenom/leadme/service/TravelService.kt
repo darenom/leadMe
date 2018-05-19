@@ -1,5 +1,6 @@
 package org.darenom.leadme.service
 
+import android.app.PendingIntent
 import android.app.Service
 import android.arch.lifecycle.MutableLiveData
 import android.content.Context
@@ -10,20 +11,27 @@ import android.location.Location
 import android.os.Binder
 import android.os.Handler
 import android.os.IBinder
+import android.support.v4.app.NotificationCompat
 import android.support.v4.content.LocalBroadcastManager
 import android.util.Log
-import org.darenom.leadme.BaseApp
+import org.darenom.leadme.AppExecutors
 import org.darenom.leadme.BuildConfig
 import org.darenom.leadme.R
-import org.darenom.leadme.db.entities.TravelStampEntity
+import org.darenom.leadme.TravelActivity
+import org.darenom.leadme.TravelActivity.Companion.NOTIF_ID
 import org.darenom.leadme.model.Travel
 import org.darenom.leadme.model.TravelSegment
+import org.darenom.leadme.room.AppDatabase
+import org.darenom.leadme.room.entities.TravelStampEntity
 import org.darenom.leadme.service.sensors.TTS
 import org.darenom.leadme.service.sensors.TravelCompassManager
 import org.darenom.leadme.service.sensors.TravelLocationManager
 
 /**
  * Created by adm on 25/10/2017.
+ *
+ * Manages Location, Compass, Travel routine
+ *
  */
 
 class TravelService : Service(), TravelLocationManager.Callback {
@@ -38,6 +46,7 @@ class TravelService : Service(), TravelLocationManager.Callback {
     // region Service lifecycle
     override fun onCreate() {
         super.onCreate()
+
         // check sensors availability
         var acc = false
         var mag = false
@@ -55,6 +64,22 @@ class TravelService : Service(), TravelLocationManager.Callback {
         }
         travelLocationManager = TravelLocationManager(this, this)
 
+        // set up notification
+        startForeground(
+                NOTIF_ID,
+                NotificationCompat.Builder(this, getString(R.string.app_name))
+                        .setSmallIcon(R.drawable.ic_notif)
+                        .setContentTitle(getString(R.string.app_name))
+                        .setContentText(getString(R.string.notif_main_msg))
+                        .setContentIntent(PendingIntent.getActivity(
+                                this,
+                                0,
+                                Intent(this, TravelActivity::class.java),
+                                0)
+                        ).build()
+        )
+
+
     }
 
     override fun onBind(intent: Intent): IBinder = binder
@@ -62,12 +87,12 @@ class TravelService : Service(), TravelLocationManager.Callback {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
         locate(true)
-        startTTS()
         return START_STICKY
     }
 
     override fun onDestroy() {
         locate(false)
+        stopForeground(true)
         super.onDestroy()
     }
     //endregion
@@ -160,15 +185,26 @@ class TravelService : Service(), TravelLocationManager.Callback {
         here = location
         // if travelling
         if (travelling && travel.value!!.points!!.isNotEmpty()) {
-            // stamp bdd
-            (application as BaseApp).mAppExecutors!!.diskIO().execute {
-                (application as BaseApp).database!!.travelStampDao().insert(TravelStampEntity(
-                        travel.value!!.name, iter, location.time, location.latitude, location.longitude,
-                        location.accuracy, location.bearing, location.provider, location.altitude,
-                        location.toString()))
-            }
             // provide info
-            computeDirections(location)
+            AppExecutors.getInstance().networkIO().execute { computeDirections(location) }
+            // stamp bdd
+            AppExecutors.getInstance().diskIO().execute {
+                AppDatabase.getInstance(applicationContext, AppExecutors.getInstance()).travelStampDao()
+                        .insert(
+                                TravelStampEntity(
+                                        travel.value!!.name,
+                                        iter,
+                                        location.time,
+                                        location.latitude,
+                                        location.longitude,
+                                        location.accuracy,
+                                        location.bearing,
+                                        location.provider,
+                                        location.altitude,
+                                        location.toString()
+                                )
+                        )
+            }
         }
     }
 
@@ -221,9 +257,8 @@ class TravelService : Service(), TravelLocationManager.Callback {
 
     // region Travel
     fun startTTS() {
-        if (hasVoice)
-            if (null == tts)
-                tts = TTS(this)
+        if (null == tts)
+            tts = TTS(this)
     }
 
     fun startMotion(iter: Int) {
@@ -235,7 +270,6 @@ class TravelService : Service(), TravelLocationManager.Callback {
         travelLocationManager!!.locate(true, false)
     }
 
-    var hasVoice: Boolean = false
     private var tts: TTS? = null
     private var iter: Int? = null
     private var isFirstRound: Boolean = false

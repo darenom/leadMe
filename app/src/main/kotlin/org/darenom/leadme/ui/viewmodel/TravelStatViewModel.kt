@@ -1,35 +1,39 @@
 package org.darenom.leadme.ui.viewmodel
 
 import android.app.Application
-import android.arch.lifecycle.*
-import org.darenom.leadme.BaseApp
-import org.darenom.leadme.db.AppDatabase
-import org.darenom.leadme.db.entities.TravelStampEntity
-import org.darenom.leadme.db.entities.TravelStatEntity
+import android.arch.lifecycle.AndroidViewModel
+import android.arch.lifecycle.MediatorLiveData
+import android.arch.lifecycle.ViewModel
+import android.arch.lifecycle.ViewModelProvider
+import org.darenom.leadme.room.AppDatabase
+import org.darenom.leadme.room.entities.TravelStatEntity
 
 /**
  * Created by admadmin on 18/03/2018.
  */
 
-class TravelStatViewModel(application: Application, name: String)
+class TravelStatViewModel(application: Application, db: AppDatabase, name: String)
     : AndroidViewModel(application) {
 
     var observableTravelStat: MediatorLiveData<List<TravelStatEntity>> = MediatorLiveData()
 
     init {
 
-        observableTravelStat.addSource<List<TravelStatEntity>> (
-                (application as BaseApp).database!!.travelStatDao()
+        observableTravelStat.addSource<List<TravelStatEntity>>(
+                db.travelStatDao()
                         .getByName(name), observableTravelStat::setValue)
     }
 
 
-    class Factory(private val mApplication: Application, private val name: String)
-        : ViewModelProvider.NewInstanceFactory() {
+    class Factory(
+            private val mApplication: Application,
+            private val db: AppDatabase,
+            private val name: String
+    ) : ViewModelProvider.NewInstanceFactory() {
 
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return TravelStatViewModel(mApplication, name) as T
+            return TravelStatViewModel(mApplication, db, name) as T
         }
     }
 }

@@ -52,6 +52,8 @@
 
 
     <string name="loading_comments">loading comments</string>
+    <string name="travelling">travelling…</string>
+    <string name="stop">Stop</string>
 
     <!-- Drawables -->
     <drawable name="ic_play">@android:drawable/ic_media_play</drawable>

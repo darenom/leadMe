@@ -1,4 +1,4 @@
-package org.darenom.leadme.db.entities
+package org.darenom.leadme.room.entities
 
 import android.arch.persistence.room.*
 
