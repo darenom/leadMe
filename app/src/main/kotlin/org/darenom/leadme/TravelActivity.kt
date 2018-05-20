@@ -37,6 +37,7 @@ import com.sothree.slidinguppanel.SlidingUpPanelLayout
 import kotlinx.android.synthetic.main.activity_travel.*
 import org.darenom.leadme.model.Travel
 import org.darenom.leadme.model.TravelSegment
+import org.darenom.leadme.room.AppDatabase
 import org.darenom.leadme.room.DateConverter
 import org.darenom.leadme.room.entities.TravelSetEntity
 import org.darenom.leadme.service.TravelService
@@ -210,10 +211,18 @@ class TravelActivity : AppCompatActivity(),
 
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
-        if ((ARRIVED.contentEquals(intent!!.action)))
+        if (null != intent!!.action)
+        if ((ARRIVED.contentEquals(intent.action)))
             startStopTravel()
     }
 
+    override fun onStop() {
+        super.onStop()
+        if(!travelling) {
+            NotificationManagerCompat.from(applicationContext).cancel(NOTIF_ID)
+            unbindService(travelCnx)
+        }
+    }
     // endregion
 
     // region permissions
@@ -549,11 +558,6 @@ class TravelActivity : AppCompatActivity(),
         } else {
             travelService!!.startMotion(svm!!.travelSet.value!!.max + 1)
         }
-
-
-
-
-
     }
 
     private fun createNotificationChannel() {

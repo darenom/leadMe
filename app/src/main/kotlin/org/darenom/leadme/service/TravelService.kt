@@ -63,23 +63,6 @@ class TravelService : Service(), TravelLocationManager.Callback {
             travelCompass = TravelCompassManager(this)
         }
         travelLocationManager = TravelLocationManager(this, this)
-
-        // set up notification
-        startForeground(
-                NOTIF_ID,
-                NotificationCompat.Builder(this, getString(R.string.app_name))
-                        .setSmallIcon(R.drawable.ic_notif)
-                        .setContentTitle(getString(R.string.app_name))
-                        .setContentText(getString(R.string.notif_main_msg))
-                        .setContentIntent(PendingIntent.getActivity(
-                                this,
-                                0,
-                                Intent(this, TravelActivity::class.java),
-                                0)
-                        ).build()
-        )
-
-
     }
 
     override fun onBind(intent: Intent): IBinder = binder
@@ -92,7 +75,7 @@ class TravelService : Service(), TravelLocationManager.Callback {
 
     override fun onDestroy() {
         locate(false)
-        stopForeground(true)
+        tts?.shutdown()
         super.onDestroy()
     }
     //endregion
@@ -373,10 +356,7 @@ class TravelService : Service(), TravelLocationManager.Callback {
                 if (isFirstRound)
                     isFirstRound = false
 
-                if (!tts!!.say(txt, uId)) {
-                    tts!!.on()
-                    tts!!.say(txt, uId)
-                }
+                // tts!!.say(txt, uId)
             }
         }
 

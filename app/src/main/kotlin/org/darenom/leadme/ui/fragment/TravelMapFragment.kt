@@ -2,6 +2,7 @@ package org.darenom.leadme.ui.fragment
 
 import android.Manifest
 import android.app.PendingIntent
+import android.app.PendingIntent.FLAG_UPDATE_CURRENT
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
 import android.content.BroadcastReceiver
@@ -37,6 +38,7 @@ import org.darenom.leadme.TravelActivity
 import org.darenom.leadme.TravelActivity.Companion.CHECK_MAP
 import org.darenom.leadme.TravelActivity.Companion.CHECK_NET_ACCESS
 import org.darenom.leadme.TravelActivity.Companion.CHECK_START_MOTION
+import org.darenom.leadme.TravelActivity.Companion.NOTIF_ID
 import org.darenom.leadme.TravelActivity.Companion.PERM_MAP
 import org.darenom.leadme.TravelActivity.Companion.PERM_START_MOTION
 import org.darenom.leadme.databinding.FragmentMapBinding
@@ -98,46 +100,45 @@ class TravelMapFragment : Fragment(), OnMapReadyCallback,
                 TravelService.REFRESH_UI -> {
                     activity!!.invalidateOptionsMenu()
                     // notify user, travel has started or stopped
+                    val pendingIntent = PendingIntent.getActivity(
+                            activity!!.applicationContext,
+                            0,
+                            Intent(activity!!.applicationContext, TravelActivity::class.java)
+                                    .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK),
+                            0
+                    )
+
+                    val notif =  NotificationCompat.Builder(activity!!.applicationContext, getString(R.string.app_name))
+                            .setSmallIcon(R.drawable.ic_notif)
+                            .setContentTitle(getString(R.string.app_name))
+                            .setContentText(getString(R.string.notif_main_msg))
+                            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                            .setContentIntent(pendingIntent)
+
                     if (travelling){
-                        NotificationManagerCompat.from(activity!!.applicationContext).notify(
-                                TravelActivity.NOTIF_ID,
-                                NotificationCompat.Builder(activity!!.applicationContext, getString(R.string.app_name))
-                                        .setSmallIcon(R.drawable.ic_notif)
-                                        .setContentTitle(getString(R.string.app_name))
-                                        .setContentText(getString(R.string.travelling))
-                                        .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-                                        .setContentIntent(PendingIntent.getActivity(
-                                                activity!!.applicationContext,
-                                                0,
-                                                Intent(activity!!.applicationContext, TravelActivity::class.java),
-                                                0)
-                                        ).addAction(
-                                                R.drawable.ic_pause,
-                                                getString(R.string.stop),
-                                                PendingIntent.getActivity(
-                                                        activity!!.applicationContext,
-                                                        0,
-                                                        Intent(activity!!.applicationContext, TravelActivity::class.java).setAction(ARRIVED),
-                                                        0
-                                                )
-                                        ).build()
+
+                        val pendingActionIntent = PendingIntent.getActivity(activity!!.applicationContext, 1,
+                                Intent(activity!!.applicationContext, TravelActivity::class.java).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                                        .setAction(ARRIVED),
+                                0
                         )
-                    } else {
-                        NotificationManagerCompat.from(activity!!.applicationContext).notify(
-                                TravelActivity.NOTIF_ID,
-                                NotificationCompat.Builder(activity!!.applicationContext, getString(R.string.app_name))
-                                        .setSmallIcon(R.drawable.ic_notif)
-                                        .setContentTitle(getString(R.string.app_name))
-                                        .setContentText(getString(R.string.notif_main_msg))
-                                        .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-                                        .setContentIntent(PendingIntent.getActivity(
-                                                activity!!.applicationContext,
-                                                0,
-                                                Intent(activity!!.applicationContext, TravelActivity::class.java),
-                                                0)
-                                        ).build()
-                        )
+
+                        val action = NotificationCompat.Action.Builder(
+                                R.drawable.ic_pause,
+                                getString(R.string.stop),
+                                pendingActionIntent
+                        ).build()
+
+                        notif.setContentText(getString(R.string.travelling))
+                        notif.addAction(action)
+
+
                     }
+
+                    NotificationManagerCompat.from(activity!!.applicationContext).notify(
+                            NOTIF_ID,
+                            notif.build()
+                    )
                 }
             // point to north
                 TravelService.ORIENTATION_CHANGED -> {
